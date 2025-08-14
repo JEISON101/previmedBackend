@@ -36,7 +36,7 @@ async crearRol({request, response}){
         try{
             const id_rol = Number(params.id_rol) 
             const {nombre_rol, estado} = request.body()
-            const actualizado = await rolesService.actualizar(id_rol,{
+            const actualizado = await rolesService.actualizarRol(id_rol,{
                 nombre_rol, estado
             })
              return response.json({ msj: actualizado })
