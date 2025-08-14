@@ -1,7 +1,7 @@
 import {Client} from 'pg';
 
 export const client = new Client({
-    port:process.env.DB_PORT,
+    port:Number(process.env.DB_PORT), //parseo a number y no genere error
     user:process.env.DB_MOTOR,
     host:process.env.HOST,
     database:process.env.DB_DATABASE,
