@@ -5,6 +5,9 @@ import MembresiaXPaciente from './membresia_x_paciente.js'
 import RegistrosPago from './registros_pago.js'
 
 export default class Membresia extends BaseModel {
+
+  public static table='membresia'
+
   @column({ isPrimary: true })
   declare id_membresia: number
 
