@@ -8,6 +8,10 @@ import Paciente from './paciente.js'
 import Telefono from './telefono.js'
 
 export default class Usuario extends BaseModel {
+  id: any
+  static findOne(arg0: { where: { numero_documento: string } }) {
+    throw new Error('Method not implemented.')
+  }
   @column({ isPrimary: true })
   declare id_usuario: number
 
