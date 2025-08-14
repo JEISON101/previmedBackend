@@ -4,6 +4,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Role from './role.js'
 
 export default class ModuloXRol extends BaseModel {
+
   @column({ isPrimary: true })
   declare id_modulo_x_rol: number
 
