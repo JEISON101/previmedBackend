@@ -4,6 +4,8 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Membresia from './membresia.js'
 
 export default class MembresiaXPaciente extends BaseModel {
+  public static table='membresia_x_paciente'
+
   @column({ isPrimary: true })
   declare id_membresia_x_paciente: number
 
@@ -14,6 +16,6 @@ export default class MembresiaXPaciente extends BaseModel {
   declare paciente: BelongsTo<typeof Paciente>
   
   @belongsTo(()=> Membresia,{foreignKey:'membresia_id'})
-  declare membrecia: BelongsTo<typeof Membresia>
+  declare membresia: BelongsTo<typeof Membresia>
   
 }

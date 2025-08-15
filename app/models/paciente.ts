@@ -5,6 +5,8 @@ import Visita from './visita.js'
 import MembresiaXPaciente from './membresia_x_paciente.js'
 
 export default class Paciente extends BaseModel {
+
+
   @column({ isPrimary: true })
   declare id_paciente: number
 
