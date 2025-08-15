@@ -1,52 +1,83 @@
-import MembresiaService from '#services/MembresiasServices'
-
-const service = new MembresiaService()
+import { HttpContext } from '@adonisjs/core/http'
+import MembresiasService from '#services/MembresiasServices'
 
 export default class MembresiasController {
-  async crear({ request, response }) {
-    try {
-      const datos = request.body()
-      const nueva = await service.crear(datos)
-      return response.created({ mensaje: 'Membresía creada', datos: nueva })
-    } catch (error) {
-      return response.status(500).json({ error: error.message })
-    }
-  }
+  private service = new MembresiasService()
 
-  async listar({ response}) {
+  async listar({ response }: HttpContext) {
     try {
-      const datos = await service.obtenerTodas()
+      const datos = await this.service.listar()
       return response.ok(datos)
     } catch (error) {
-      return response.status(500).json({ error: error.message })
+      return response.status(500).send({ error: error.message })
     }
   }
 
-  async obtenerPorId({ params, response }) {
+  async obtenerPorId({ params, response }: HttpContext) {
     try {
-      const datos = await service.obtenerPorId(params.id)
-      return response.ok(datos)
+      const dato = await this.service.obtenerPorId(params.id)
+      return response.ok(dato)
     } catch (error) {
-      return response.status(404).json({ error: 'Membresía no encontrada' })
+      return response.status(404).send({ error: error.message })
     }
   }
 
-  async actualizar({ params, request, response }) {
+  async crear({ request, response }: HttpContext) {
     try {
-      const datos = request.body()
-      const actualizada = await service.actualizar(params.id, datos)
-      return response.ok({ mensaje: 'Membresía actualizada', datos: actualizada })
+      const data = request.only([
+        'firma',
+        'forma_pago',
+        'numero_contrato',
+        'fecha_inicio',
+        'fecha_fin',
+        'estado',
+        'plan_id'
+      ])
+      const paciente_id = request.input('paciente_id')
+
+      const nueva = await this.service.crear(
+        {
+          ...data,
+          plan_id: Number(data.plan_id),
+          estado: Boolean(data.estado)
+        },
+        paciente_id ? Number(paciente_id) : undefined
+      )
+      return response.created(nueva)
     } catch (error) {
-      return response.status(500).json({ error: error.message })
+      return response.status(500).send({ error: error.message })
     }
   }
 
-  async eliminar({ params, response }) {
+  async actualizar({ params, request, response }: HttpContext) {
     try {
-      const mensaje = await service.eliminar(params.id)
-      return response.ok({ mensaje })
+      const data = request.only([
+        'firma',
+        'forma_pago',
+        'numero_contrato',
+        'fecha_inicio',
+        'fecha_fin',
+        'estado',
+        'plan_id'
+      ])
+
+      const actualizada = await this.service.actualizar(params.id, {
+        ...data,
+        plan_id: Number(data.plan_id),
+        estado: Boolean(data.estado)
+      })
+      return response.ok(actualizada)
     } catch (error) {
-      return response.status(500).json({ error: error.message })
+      return response.status(404).send({ error: error.message })
+    }
+  }
+
+  async eliminar({ params, response }: HttpContext) {
+    try {
+      const msg = await this.service.eliminar(params.id)
+      return response.ok({ mensaje: msg })
+    } catch (error) {
+      return response.status(404).send({ error: error.message })
     }
   }
 }

@@ -17,14 +17,15 @@ export default class Membresia extends BaseModel {
   @column() declare fecha_inicio: Date
   @column() declare fecha_fin: Date
   @column() declare estado: boolean
-  @column() declare plan_id: string
+  @column() declare plan_id: number
 
   @belongsTo(() => Plane, { foreignKey: 'plan_id' })
   declare plan: BelongsTo<typeof Plane>
 
-  @hasMany(() => MembresiaXPaciente)
+  @hasMany(() => MembresiaXPaciente, { foreignKey: 'membresia_id' })
   declare membresiaPaciente: HasMany<typeof MembresiaXPaciente>
-  
-  @hasMany(() => RegistrosPago)
+
+  @hasMany(() => RegistrosPago, { foreignKey: 'membresia_id' })
   declare registrosPagos: HasMany<typeof RegistrosPago>
+
 }
