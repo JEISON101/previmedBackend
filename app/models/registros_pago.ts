@@ -8,7 +8,7 @@ export default class RegistrosPago extends BaseModel {
   declare id_registro: number
 
   @column() declare monto: number
-  @column() declare foto: string
+  @column() declare foto?: string | null // opcional ya que posiblemente todos los registros no lleven foto o comprobante 
   @column() declare fecha_inicio: Date
   @column() declare fecha_fin: Date
   @column() declare membresia_id: number
