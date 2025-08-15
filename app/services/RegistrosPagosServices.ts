@@ -1,18 +1,31 @@
-import RegistrosPago from "#models/registros_pago"
+import RegistrosPago from '#models/registros_pago'
 
 export default class RegistrosPagoService {
-  async get_all_pagos() {
-    return await RegistrosPago.query().
-    preload('formaPago').
-    preload('membresia');
-  }
+async get_all_pagos() {
+  return await RegistrosPago.query()
+    .preload('formaPago')
+    .preload('membresia', (membresiaQuery) => {
+      membresiaQuery.preload('membresiaPaciente', (mxpQuery) => {
+        mxpQuery.preload('paciente', (pacienteQuery) => {
+          pacienteQuery.preload('usuario')
+        })
+      })
+    })
+}
+
 
   async get_pago_id(id: number) {
-    return await RegistrosPago.query().
-    where('id_registro',id).
-    preload('formaPago').
-    preload('membresia').
-    firstOrFail();
+    return await RegistrosPago.query()
+      .where('id_registro', id)
+      .preload('formaPago')
+      .preload('membresia',(membresiaQuery) => {
+      membresiaQuery.preload('membresiaPaciente', (mxpQuery) => {
+        mxpQuery.preload('paciente', (pacienteQuery) => {
+          pacienteQuery.preload('usuario')
+        })
+      })
+    })
+    .firstOrFail()
   }
 
   async create_pago(data: any) {
