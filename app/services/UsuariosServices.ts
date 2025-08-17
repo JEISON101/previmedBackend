@@ -34,22 +34,21 @@ export default class UsuarioService {
   }
 
   // Crear usuario
-public async create(data: any) {
-  try {
-    // Generar UUID
-    data.id_usuario = uuidv4()   // 👈 importante: coincide con tu tabla
+  public async create(data: any) {
+    try {
+      // Generar UUID (tu tabla debe tener id_usuario como PK o UUID)
+      data.id_usuario = uuidv4()   
 
-    // Hashear contraseña
-    const hashedPassword = await bcrypt.hash(data.password, 10)
-    data.password = hashedPassword
+      // Hashear contraseña
+      const hashedPassword = await bcrypt.hash(data.password, 10)
+      data.password = hashedPassword
 
-    // Crear usuario
-    const usuario = await Usuario.create(data)
-    return usuario
-  } catch (error) {
-    console.error('Error al crear el usuario:', error)
-    throw new Error('No se pudo crear el usuario')
+      // Crear usuario en DB
+      const usuario = await Usuario.create(data)
+      return usuario
+    } catch (error) {
+      console.error('Error al crear el usuario:', error)
+      throw new Error('No se pudo crear el usuario')
+    }
   }
-}
-
 }
