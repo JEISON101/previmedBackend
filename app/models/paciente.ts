@@ -14,7 +14,7 @@ export default class Paciente extends BaseModel {
   @column() declare ocupacion: string
   @column() declare activo: boolean
   @column() declare beneficiario: boolean
-  @column() declare usuario_id: number
+  @column() declare usuario_id: string
   @column() declare paciente_id: number
 
   @belongsTo(() => Usuario, { foreignKey: 'usuario_id' })
