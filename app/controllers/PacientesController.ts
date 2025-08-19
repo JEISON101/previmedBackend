@@ -1,99 +1,173 @@
-// app/controllers/PacientesController.ts
-import { HttpContext } from '@adonisjs/core/http'
-import PacientesService from '#services/PacientesServices'
+import PacientesServices from '#services/PacientesServices'
+import { type HttpContext } from '@adonisjs/core/http'
+import { v4 as uuidv4 } from 'uuid'
+import bcrypt from 'bcrypt'
+
+const paciente = new PacientesServices()
 
 export default class PacientesController {
-  private pacientesService = new PacientesService()
-
-  /**
-   * Lista todos los pacientes, precargando la información de su usuario.
-   */
-  async index({ response }: HttpContext) {
+  async create({ request, response }: HttpContext) {
     try {
-      const pacientes = await this.pacientesService.findAll()
-      return response.ok(pacientes)
-    } catch (error) {
-      console.error('Error al listar pacientes:', error)
-      return response.internalServerError({ message: 'Error al obtener los pacientes.' })
-    }
-  }
+      const id_usuario = uuidv4()
+      const {
+        nombre,
+        segundo_nombre,
+        apellido,
+        segundo_apellido,
+        email,
+        password,
+        direccion,
+        numero_documento,
+        fecha_nacimiento,
+        numero_hijos,
+        estrato,
+        autorizacion_datos,
+        habilitar,
+        genero,
+        estado_civil,
+        tipo_documento,
+        eps_id,
+        rol_id,
+        direccion_cobro,
+        ocupacion,
+        activo,
+        beneficiario,
+        paciente_id,
+      } = request.body()
 
-  /**
-   * Obtiene un paciente por su ID, precargando la información de su usuario.
-   */
-  async show({ params, response }: HttpContext) {
-    try {
-      const paciente = await this.pacientesService.findById(params.id)
-      if (!paciente) {
-        return response.notFound({ message: 'Paciente no encontrado.' })
+      const userExist = await paciente.readByDoc(numero_documento)
+
+      if (userExist) {
+        return response.status(500).json({ message: 'El usuario ya se encuentra registrado' })
       }
-      return response.ok(paciente)
-    } catch (error) {
-      console.error(`Error al obtener paciente con ID ${params.id}:`, error)
-      return response.internalServerError({ message: 'Error al obtener el paciente.' })
+
+      const hash = await bcrypt.hash(password, 10)
+
+      const newPaciente = await paciente.create(
+        {
+          direccion_cobro,
+          ocupacion,
+          activo,
+          beneficiario,
+          paciente_id,
+          usuario_id: id_usuario,
+        },
+        {
+          id_usuario,
+          nombre,
+          segundo_nombre,
+          apellido,
+          segundo_apellido,
+          email,
+          password: hash,
+          direccion,
+          numero_documento,
+          fecha_nacimiento,
+          numero_hijos,
+          estrato,
+          autorizacion_datos,
+          habilitar,
+          genero,
+          estado_civil,
+          tipo_documento,
+          eps_id,
+          rol_id,
+        }
+      )
+      return response.status(201).json({ message: 'Creado', data: newPaciente })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-
-  /**
-   * Crea un nuevo paciente.
-   */
-  async store({ request, response }: HttpContext) {
+  async readAll({ response }: HttpContext) {
     try {
-      const data = request.only([
-        'direccion_cobro',
-        'ocupacion',
-        'activo',
-        'beneficiario',
-        'usuario_id',
-        'paciente_id' // Si aplica, para el caso de beneficiarios de otro paciente
-      ])
-
-      const newPaciente = await this.pacientesService.create(data)
-      return response.created(newPaciente)
-    } catch (error) {
-      console.error('Error al crear paciente:', error)
-      return response.internalServerError({ message: 'Error al crear el paciente.' })
+      const users = await paciente.read()
+      return response.status(201).json({ message: 'Información obtenida', data: users })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-
-  /**
-   * Actualiza un paciente existente.
-   */
-  async update({ params, request, response }: HttpContext) {
+  async readById({ params, response }: HttpContext) {
     try {
-      const data = request.only([
-        'direccion_cobro',
-        'ocupacion',
-        'activo',
-        'beneficiario',
-        'usuario_id',
-        'paciente_id'
-      ])
-
-      const updatedPaciente = await this.pacientesService.update(params.id, data)
-      if (!updatedPaciente) {
-        return response.notFound({ message: 'Paciente no encontrado para actualizar.' })
-      }
-      return response.ok(updatedPaciente)
-    } catch (error) {
-      console.error(`Error al actualizar paciente con ID ${params.id}:`, error)
-      return response.internalServerError({ message: 'Error al actualizar el paciente.' })
+      const { id } = params
+      const userid = await paciente.readById(id)
+      return response.status(200).json({ message: 'Información obtenida', data: userid })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-
-  /**
-   * Elimina un paciente.
-   */
-  async destroy({ params, response }: HttpContext) {
+  async deleteById({ params, response }: HttpContext) {
     try {
-      const success = await this.pacientesService.delete(params.id)
-      if (!success) {
-        return response.notFound({ message: 'Paciente no encontrado para eliminar.' })
-      }
-      return response.noContent() // 204 No Content para eliminación exitosa
-    } catch (error) {
-      console.error(`Error al eliminar paciente con ID ${params.id}:`, error)
-      return response.internalServerError({ message: 'Error al eliminar el paciente.' })
+      const { id } = params
+      const userid = await paciente.delete(id)
+      return response.status(200).json({ message: 'Eliminado', data: userid })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
+    }
+  }
+  async updateById({ params, request, response }: HttpContext) {
+    try {
+      const { id } = params
+      const {
+        nombre,
+        segundo_nombre,
+        apellido,
+        segundo_apellido,
+        email,
+        password,
+        direccion,
+        numero_documento,
+        fecha_nacimiento,
+        numero_hijos,
+        estrato,
+        autorizacion_datos,
+        habilitar,
+        genero,
+        estado_civil,
+        tipo_documento,
+        eps_id,
+        rol_id,
+        direccion_cobro,
+        ocupacion,
+        activo,
+        beneficiario,
+        paciente_id,
+      } = request.body()
+
+      const hash = await bcrypt.hash(password, 10)
+      const userid = await paciente.update(
+        id,
+        {
+          direccion_cobro,
+          ocupacion,
+          activo,
+          beneficiario,
+          paciente_id,
+        },
+        {
+          nombre,
+          segundo_nombre,
+          apellido,
+          segundo_apellido,
+          email,
+          password: hash,
+          direccion,
+          numero_documento,
+          fecha_nacimiento,
+          numero_hijos,
+          estrato,
+          autorizacion_datos,
+          habilitar,
+          genero,
+          estado_civil,
+          tipo_documento,
+          eps_id,
+          rol_id,
+        }
+      )
+      return response.status(200).json({ message: 'Actualizado', data: userid })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
 }
