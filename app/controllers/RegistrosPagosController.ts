@@ -1,5 +1,6 @@
 import RegistrosPagoService from '#services/RegistrosPagosServices'
 import { HttpContext } from '@adonisjs/core/http'
+import { PostRegistroPago } from '../interfaces/registros_pagos.js'
 
 export default class RegistrosPagoController {
   private service = new RegistrosPagoService()
@@ -29,7 +30,7 @@ export default class RegistrosPagoController {
   }
 
   async create_registro_pago ({ request, response }: HttpContext) {
-      const data = request.body();
+      const data = request.body() as PostRegistroPago;
     try {
       await this.service.create_pago(data);
       return response.status(201).ok({message:'Registro de pago creado exitosamente'})
@@ -44,7 +45,7 @@ export default class RegistrosPagoController {
   async update_registro_pago ({ params, request, response }: HttpContext) {
     const data = request.body();
     try {
-      await this.service.update_pago(params.id, data)
+      await this.service.update_pago(params.id, data as PostRegistroPago);
       return response.status(201).ok({message:'Registro de pago actualizado exitosamente'})
     } catch(error) {
       return response.status(500).send({

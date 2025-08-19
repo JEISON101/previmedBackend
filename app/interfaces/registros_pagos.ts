@@ -1,18 +1,22 @@
 export interface GetRegitroPago{
-    id_registro:number;
+    idRegistro:number;
     monto:number;
     foto?:string;
-    fecha_inicio:Date | string;
-    fexha_fin:Date | string;
-    membresia_id:number;
-    forma_pago_id:number;
+    fechaInicio:Date;
+    fechaFin:Date;
+    fechaPago: Date;
+    membresiaId:number;
+    formaPagoId:number;
+    membresia:object;
+    formaPago:object;
 }
 
 export interface PostRegistroPago{
     monto:number;
-    foto?:string|null;
-    fecha_inicio:Date | string;
-    fexha_fin:Date | string;
+    foto?:string;
+    fecha_inicio:Date;
+    fecha_fin:Date;
+    fecha_pago: Date;
     membresia_id:number;
     forma_pago_id:number;
 }
