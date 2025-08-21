@@ -10,7 +10,7 @@ export default class Medico extends BaseModel {
 
   @column() declare disponibilidad: boolean
   @column() declare estado: boolean
-  @column() declare usuario_id: number
+  @column() declare usuario_id: string
 
   @belongsTo(()=> Usuario, {foreignKey:'usuario_id'})
   declare usuario: BelongsTo<typeof Usuario>
