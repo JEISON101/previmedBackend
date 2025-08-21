@@ -96,6 +96,14 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+  async readByITitular({  response }: HttpContext) {
+    try {
+      const userTi = await paciente.readByTitular()
+      return response.status(200).json({ message: 'Información obtenida', data: userTi })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
+    }
+  }
   async deleteById({ params, response }: HttpContext) {
     try {
       const { id } = params

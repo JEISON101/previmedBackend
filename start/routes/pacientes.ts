@@ -6,6 +6,7 @@ const paciente = new PacientesController();
 
 router.post('/pacientes', paciente.create);
 router.get('/pacientes', paciente.readAll);
+router.get('/pacientes/titular', paciente.readByITitular);
 router.get('/pacientes/:id', paciente.readById);
 router.delete('/pacientes/:id', paciente.deleteById);
 router.put('/pacientes/:id', paciente.updateById);

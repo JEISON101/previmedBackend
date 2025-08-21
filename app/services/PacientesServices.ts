@@ -20,6 +20,9 @@ export default class PacientesServices {
   async read() {
     return await Paciente.query().preload('usuario')
   }
+  async readByTitular() {
+    return await Paciente.query().preload('usuario').whereNull('paciente_id')
+  }
   async readByDoc(doc: string) {
     const pac = await Usuario.query().where('numero_documento', doc).first()
     return pac
