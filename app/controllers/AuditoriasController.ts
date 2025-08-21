@@ -1,3 +1,4 @@
+
 import AuditoriasServices from '#services/AuditoriasServices';
 import type { HttpContext } from '@adonisjs/core/http';
 const auditorias = new AuditoriasServices()
