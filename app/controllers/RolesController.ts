@@ -1,9 +1,10 @@
+import type  { HttpContext } from '@adonisjs/core/http'
 import RolesServices from '../services/RolesServices.js'
 
 const rolesService = new RolesServices()
 
 export default class RolesController{
-async crearRol({request, response}){
+async crearRol({request, response}: HttpContext){
     try{
         const {nombre_rol, estado} = request.body()
         const nuevo = await rolesService.crear({nombre_rol, estado})
@@ -13,7 +14,7 @@ async crearRol({request, response}){
         }
 }
 
-    async listarRol({response}){
+    async listarRol({response}: HttpContext){
         try{
             const lista = await rolesService.listar()
              return response.json({ msj: lista })
@@ -22,7 +23,7 @@ async crearRol({request, response}){
         }
     }
 
-    async listarRolId({ params, response }){
+    async listarRolId({ params, response }: HttpContext){
         try{
            const id_rol = Number(params.id_rol)
            const rol = await rolesService.listarId(id_rol)
@@ -32,7 +33,7 @@ async crearRol({request, response}){
         }
     }
 
-     async actualizarRol({ params, request, response }){
+     async actualizarRol({ params, request, response }: HttpContext){
         try{
             const id_rol = Number(params.id_rol) 
             const {nombre_rol, estado} = request.body()
@@ -45,7 +46,7 @@ async crearRol({request, response}){
     }
      }
 
-     async eliminarRol({ params, response }) {
+     async eliminarRol({ params, response }: HttpContext) {
         try{
             const id_rol =Number(params.id_rol)
             const eliminado = await rolesService.eliminar(id_rol)
@@ -55,7 +56,7 @@ async crearRol({request, response}){
     }
      }
 
-     async contarRol({ response }) {
+     async contarRol({ response }: HttpContext) {
     try {
       const cantidad = await rolesService.conteo()
       return response.json({ msj: cantidad })

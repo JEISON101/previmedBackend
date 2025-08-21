@@ -1,9 +1,10 @@
+import type  { HttpContext } from '@adonisjs/core/http'
 import PlanesServices from '../services/PlanesServices.js';
 
 const planesService = new PlanesServices()
 
 export default class PlanesController{
-    async crearPlan({request, response}){
+    async crearPlan({request, response}: HttpContext){
         try{
             const {tipo_plan, descripcion, precio, estado, cantidad_beneficiarios} = request.body()
             const nuevo = await planesService.crear({tipo_plan, descripcion, precio, estado, cantidad_beneficiarios})
@@ -13,7 +14,7 @@ export default class PlanesController{
         }
     }
 
-    async listarPlanes({response}){
+    async listarPlanes({response}: HttpContext){
         try{
             const lista = await planesService.listar()
              return response.json({ msj: lista })
@@ -22,7 +23,7 @@ export default class PlanesController{
         }
     }
 
-    async listarPlanId({ params, response }){
+    async listarPlanId({ params, response }: HttpContext){
         try{
            const id_plan = Number(params.id_plan)
            const plan = await planesService.listarId(id_plan)
@@ -32,7 +33,7 @@ export default class PlanesController{
         }
     }
 
-     async actualizarPlan({ params, request, response }) {
+     async actualizarPlan({ params, request, response }: HttpContext) {
     try {
       const id_plan = Number(params.id_plan)
       const { tipo_plan, descripcion, precio, estado, cantidad_beneficiarios } = request.body()
@@ -49,7 +50,7 @@ export default class PlanesController{
     }
   }
 
-   async eliminarPlan({ params, response }) {
+   async eliminarPlan({ params, response }: HttpContext) {
     try {
       const id_plan = Number(params.id_plan)
       const eliminado = await planesService.eliminar(id_plan)
@@ -59,7 +60,7 @@ export default class PlanesController{
     }
   }
 
-  async contarPlanes({ response }) {
+  async contarPlanes({ response }: HttpContext) {
     try {
       const cantidad = await planesService.conteo()
       return response.json({ msj: cantidad })
