@@ -10,7 +10,7 @@ export default class Visita extends BaseModel {
   declare id_visita: number
 
   @column() declare fecha_visita: DateTime
-  @column() declare descipcion: string
+  @column() declare descripcion: string
   @column() declare direccion: string
   @column() declare estado: boolean
   @column() declare telefono: string
