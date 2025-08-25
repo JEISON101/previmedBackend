@@ -7,7 +7,8 @@ export default class MembresiasController {
   async listar({ response }: HttpContext) {
     try {
       const datos = await this.service.listar()
-      return response.ok(datos)
+      const serializados = datos.map((m) => m.toJSON()) // Incluye relaciones
+      return response.ok(serializados)
     } catch (error) {
       return response.status(500).send({ error: error.message })
     }
@@ -16,7 +17,7 @@ export default class MembresiasController {
   async obtenerPorId({ params, response }: HttpContext) {
     try {
       const dato = await this.service.obtenerPorId(params.id)
-      return response.ok(dato)
+      return response.ok(dato.toJSON()) //  También serializado
     } catch (error) {
       return response.status(404).send({ error: error.message })
     }
@@ -43,7 +44,7 @@ export default class MembresiasController {
         },
         paciente_id ? Number(paciente_id) : undefined
       )
-      return response.created(nueva)
+      return response.created(nueva.toJSON())
     } catch (error) {
       return response.status(500).send({ error: error.message })
     }
@@ -66,7 +67,7 @@ export default class MembresiasController {
         plan_id: Number(data.plan_id),
         estado: Boolean(data.estado)
       })
-      return response.ok(actualizada)
+      return response.ok(actualizada.toJSON())
     } catch (error) {
       return response.status(404).send({ error: error.message })
     }
