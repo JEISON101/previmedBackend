@@ -11,4 +11,5 @@ export default class Auditoria extends BaseModel {
   @column() declare registro_id: string
   @column.dateTime({ autoCreate: true })
   declare created: DateTime
+  
 }
