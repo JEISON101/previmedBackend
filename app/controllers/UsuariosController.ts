@@ -6,7 +6,6 @@ import jwt from 'jsonwebtoken'
 const usuarioServices = new UsuarioServices()
 
 export default class UsuariosController {
-  
   // Login
   public async login({ request, response }: HttpContext) {
     try {
@@ -14,7 +13,7 @@ export default class UsuariosController {
 
       if (!numero_documento || !password) {
         return response.status(400).json({
-          msg: 'El número de documento y la contraseña son obligatorios'
+          msg: 'El número de documento y la contraseña son obligatorios',
         })
       }
 
@@ -34,16 +33,18 @@ export default class UsuariosController {
         { expiresIn: '1h' }
       )
 
-      return response.status(200).json({
-        msg: 'Login exitoso',
-        usuario,
-        token
+      response.cookie('auth', token, {
+        httpOnly: false,
+        sameSite: false,
+        secure: false,
+        maxAge: 1000 * 60 * 60,
       })
 
+      return response.status(200).json({ message: 'Acceso permitido' })
     } catch (error) {
       return response.status(500).json({
         msg: 'Error interno en el login',
-        error: error.message
+        error: error.message,
       })
     }
   }
@@ -55,8 +56,8 @@ export default class UsuariosController {
       return response.ok(usuarios)
     } catch (error) {
       return response.status(500).json({
-        msg: "No se pudo obtener usuarios",
-        error
+        msg: 'No se pudo obtener usuarios',
+        error,
       })
     }
   }
