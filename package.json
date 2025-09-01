@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node build/bin/server.js",
     "postbuild": "copy .env build\\.env || echo no local .env to copy",
-    "build": "node ace build",
+    "build": "node ace build --production",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
     "lint": "eslint .",
