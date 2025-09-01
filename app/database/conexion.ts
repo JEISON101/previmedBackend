@@ -8,7 +8,7 @@ export const client = new Client({
     database:process.env.DB_DATABASE,
     password:process.env.DB_PASSWORD,
     ssl: { rejectUnauthorized: false },
-    lookup: (hostname:any, options:any, callback:any) => {
+    lookup: (hostname:any, callback:any) => {
     dns.lookup(hostname, { family: 4 }, callback) // fuerza IPv4
   }
 }as any)
