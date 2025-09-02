@@ -2,6 +2,7 @@ import UsuarioServices from '../services/UsuariosServices.js'
 import type { HttpContext } from '@adonisjs/http-server'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import env from '#start/env'
 
 const usuarioServices = new UsuarioServices()
 
@@ -19,17 +20,17 @@ export default class UsuariosController {
 
       const usuario = await usuarioServices.doc(numero_documento)
       if (!usuario) {
-        return response.status(404).json({ msg: 'Usuario no encontrado' })
+        return response.status(200).json({ msg: 'Usuario no encontrado' })
       }
 
       const validPassword = await bcrypt.compare(password, usuario.password)
       if (!validPassword) {
-        return response.status(401).json({ msg: 'Contraseña incorrecta' })
+        return response.status(200).json({ msg: 'Contraseña incorrecta' })
       }
 
       const token = jwt.sign(
         { id: usuario.id_usuario, numero_documento: usuario.numero_documento },
-        process.env.JWT_SECRET || 'clave_secreta',
+        env.get("APP_KEY"),
         { expiresIn: '1h' }
       )
 
@@ -40,7 +41,7 @@ export default class UsuariosController {
         maxAge: 1000 * 60 * 60,
       })
 
-      return response.status(200).json({ message: 'Acceso permitido' })
+      return response.status(200).json({ message: 'Acceso permitido', data:{id: usuario.id_usuario, documento: usuario.numero_documento}, jwt:token })
     } catch (error) {
       return response.status(500).json({
         msg: 'Error interno en el login',
