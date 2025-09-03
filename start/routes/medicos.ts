@@ -16,6 +16,6 @@ router.group(() => {
   
   // Ruta especial para cambiar disponibilidad (me la dio chat)
   router.patch('/:id/disponibilidad', [MedicosController, 'cambiarDisponibilidad'])
-}).prefix('/medicos')
+}).prefix('medicos')
 
 export default router
