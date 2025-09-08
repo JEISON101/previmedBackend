@@ -29,6 +29,6 @@ export default class Paciente extends BaseModel {
   @hasMany(() => Visita)
   declare visitas: HasMany<typeof Visita>
 
-  @hasMany(() => MembresiaXPaciente)
+  @hasMany(() => MembresiaXPaciente, {foreignKey: 'paciente_id'})
   declare membresiaPaciente: HasMany<typeof MembresiaXPaciente>
 }
