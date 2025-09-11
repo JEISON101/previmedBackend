@@ -21,7 +21,7 @@ export default class PacientesServices {
     return await Paciente.query().preload('usuario')
   }
   async readByTitular() {
-    return await Paciente.query().preload('usuario').whereNull('paciente_id')
+    return await Paciente.query().preload('usuario').whereNull('paciente_id').has('membresiaPaciente').preload('membresiaPaciente', (mxpQuery)=>{mxpQuery.preload('membresia')})
   }
   async readByDoc(doc: string) {
     const pac = await Usuario.query().where('numero_documento', doc).first()

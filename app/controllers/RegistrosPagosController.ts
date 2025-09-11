@@ -1,6 +1,13 @@
 import RegistrosPagoService from '#services/RegistrosPagosServices'
 import { HttpContext } from '@adonisjs/core/http'
 import { PostRegistroPago } from '../interfaces/registros_pagos.js'
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
 
 export default class RegistrosPagoController {
   private service = new RegistrosPagoService()
@@ -29,25 +36,56 @@ export default class RegistrosPagoController {
     }
   }
 
-  async create_registro_pago ({ request, response }: HttpContext) {
-      const data = request.body() as PostRegistroPago;
+  async subirImagen(file:any) {
+    const upload = await cloudinary.uploader.upload(file.tmpPath!, {
+      width: 1000,
+      height: 800,
+      crop: 'fill'
+    });
+    return upload.secure_url;
+  }
+
+  async create_registro_pago({ request, response }: HttpContext) {
     try {
-      await this.service.create_pago(data);
-      return response.status(201).ok({message:'Registro de pago creado exitosamente'})
+      const foto = request.file('foto')
+      const urlFoto = foto ? await this.subirImagen(foto) : undefined;
+      const data = {...request.only([
+        'monto',
+        'fecha_inicio',
+        'fecha_pago',
+        'fecha_fin',
+        'membresia_id',
+        'forma_pago_id',
+      ]),
+      foto: urlFoto
+    }
+      const res = await this.service.create_pago(data);
+      const pago = await this.service.get_pago_id(res.id_registro);
+      return response.status(201).ok({ message: 'Registro de pago creado exitosamente', data:pago })
     } catch (error) {
-      return response.status(500).send({
-        message: 'Error al crear el registro de pago',
-        error: error.message
-      })
+      return response.status(500).send({ message: 'Error al crear el registro de pago', error: error.message })
     }
   }
 
-  async update_registro_pago ({ params, request, response }: HttpContext) {
-    const data = request.body();
+  async update_registro_pago({ params, request, response }: HttpContext) {
     try {
-      await this.service.update_pago(params.id, data as PostRegistroPago);
-      return response.status(201).ok({message:'Registro de pago actualizado exitosamente'})
-    } catch(error) {
+      const foto = request.file('foto')
+      const urlFoto = foto ? await this.subirImagen(foto) : undefined;
+      const data = {
+        ...request.only([
+          'monto',
+          'fecha_inicio',
+          'fecha_pago',
+          'fecha_fin',
+          'membresia_id',
+          'forma_pago_id',
+        ]),
+        ...(urlFoto && { foto: urlFoto }) // solo agrega foto si existe
+      }
+      const res = await this.service.update_pago(params.id, data as PostRegistroPago);
+      const pago = await this.service.get_pago_id(res.id_registro);
+      return response.status(200).ok({ message: 'Registro de pago actualizado exitosamente', data:pago })
+    } catch (error) {
       return response.status(500).send({
         message:'Error al actualizar el registro de pago',
         error:error.message
