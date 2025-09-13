@@ -17,6 +17,7 @@ export default class UsuarioService {
     return await Usuario
       .query()
       .where('numero_documento', numero_documento)
+      .preload('rol')
       .first() 
   }
 
