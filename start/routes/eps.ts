@@ -1,11 +1,13 @@
 import EpsController from "#controllers/EpsController";
 import router from "./medicos.js";
 
-const Eps = new EpsController();
 
 //rutas eps
-router.get('/read', Eps.read)
-router.get('/listar/:id',Eps.readId)
-router.post('/register', Eps.register)
-router.put('/update', Eps.update)
-router.delete('/delete/:id', Eps.update)
+router.group(() => {
+    //liostar todas
+    router.get('/read', [EpsController, 'read'])
+    router.get('/read/:id', [EpsController, 'readId'])
+    router.post('/register',[EpsController, 'register'])
+    router.put('/update', [EpsController, 'update'])
+    router.delete('/delete/:id', [EpsController, 'delete'])
+}).prefix('/eps')
