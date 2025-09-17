@@ -1,7 +1,6 @@
 import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import Paciente from './paciente.js'
-import type
- { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
 export default class ContactosEmergencia extends BaseModel {
   @column({ isPrimary: true })
