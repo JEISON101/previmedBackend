@@ -11,9 +11,11 @@ async crear(data:{
     return await Plane.create(data)
 }
 
-async listar(){
-        return await Plane.query()
+async listar() {
+  return Plane.query()
+    .preload('planXBeneficios', (query) => query.preload('beneficio'))
 }
+
 
 async listarId(id: number) {
     return await Plane.find(id)
