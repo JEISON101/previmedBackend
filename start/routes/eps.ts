@@ -8,6 +8,6 @@ router.group(() => {
     router.get('/read', [EpsController, 'read'])
     router.get('/read/:id', [EpsController, 'readId'])
     router.post('/register',[EpsController, 'register'])
-    router.put('/update', [EpsController, 'update'])
+    router.put('/update/:id', [EpsController, 'update'])
     router.delete('/delete/:id', [EpsController, 'delete'])
 }).prefix('/eps')
