@@ -12,8 +12,12 @@ export default class Plane extends BaseModel {
   @column() declare precio: number
   @column() declare estado: boolean
   @column() declare cantidad_beneficiarios: number
-  @hasMany(() => PlanXBeneficio)
+
+  @hasMany(() => PlanXBeneficio,{
+    foreignKey: 'plan_id',
+  })
   declare planXBeneficios: HasMany<typeof PlanXBeneficio>
+  
   @hasMany(() => Membresia)
   declare membresias: HasMany<typeof Membresia>
 }

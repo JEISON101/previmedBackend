@@ -10,9 +10,13 @@ export default class PlanXBeneficio extends BaseModel {
   @column() declare plan_id: number
   @column() declare beneficio_id: number
 
-  @belongsTo(()=> Plane)
+  @belongsTo(()=> Plane ,{
+    foreignKey: 'plan_id',
+  })
   declare plan: BelongsTo<typeof Plane>
   
-  @belongsTo(()=> Beneficio)
+  @belongsTo(()=> Beneficio, {
+    foreignKey: 'beneficio_id',
+  })
   declare beneficio: BelongsTo<typeof Beneficio>
 }
