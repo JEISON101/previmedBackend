@@ -24,6 +24,6 @@ export default class Visita extends BaseModel {
   @belongsTo(()=> Medico, {foreignKey:'medico_id'})
   declare medico: BelongsTo<typeof Medico>
 
-  @belongsTo(()=> Barrio, {foreignKey:'medico_id'})
+  @belongsTo(()=> Barrio, {foreignKey:'barrio_id'})
   declare barrio: BelongsTo<typeof Barrio>
 }
