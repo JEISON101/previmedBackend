@@ -178,4 +178,36 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+  
+  async readByUsuarioLogueado({ request, response }: HttpContext) {
+    try {
+      // 👇 Forzamos auth como any para evitar error TS
+      const auth: any = (request as any).auth
+
+      if (!auth) {
+        return response.status(401).json({ message: 'No se encontró autenticación en el contexto' })
+      }
+
+      const user = await auth.use('api').authenticate()
+      const usuarioId = user.id_usuario ?? user.id
+
+      if (!usuarioId) {
+        return response.status(400).json({ message: 'Usuario no encontrado en la sesión' })
+      }
+
+      const pacienteEncontrado = await paciente.readByUsuarioId(usuarioId)
+
+      if (!pacienteEncontrado) {
+        return response.status(404).json({ message: 'No existe paciente para este usuario' })
+      }
+
+      return response.status(200).json({
+        message: 'Paciente obtenido',
+        data: pacienteEncontrado,
+      })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
+    }
+  }
 }
+
