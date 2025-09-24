@@ -64,4 +64,8 @@ export default class PacientesServices {
       throw new Error(`Error al eliminar los registros ${e.message}`)
     }
   }
+    async readByUsuarioId(usuarioId: string) {
+    return await Paciente.query().where('usuario_id', usuarioId).first()
+  }
 }
+

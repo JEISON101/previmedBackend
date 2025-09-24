@@ -10,3 +10,4 @@ router.get('/pacientes/titular', paciente.readByITitular);
 router.get('/pacientes/:id', paciente.readById);
 router.delete('/pacientes/:id', paciente.deleteById);
 router.put('/pacientes/:id', paciente.updateById);
+router.get('/pacientes/mi-perfil', paciente.readByUsuarioLogueado);
