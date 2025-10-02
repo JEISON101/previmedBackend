@@ -59,6 +59,13 @@ class VisitasServices {
     const resultado = await Visita.query().count('* as total')
     return resultado[0].$extras.total
   }
+  async listarPorPaciente(pacienteId: number) {
+    return await Visita.query()
+      .where('paciente_id', pacienteId)
+      .preload('paciente')
+      .preload('medico')
+      .preload('barrio')
+  }
 }
 
 export default VisitasServices
