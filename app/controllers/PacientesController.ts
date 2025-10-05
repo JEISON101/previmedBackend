@@ -209,5 +209,19 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+  async readByUsuarioId({ params, response }: HttpContext) {
+  try {
+    const { usuario_id } = params
+    const pacienteData = await paciente.readByUsuarioId(usuario_id)
+    
+    if (!pacienteData) {
+      return response.status(404).json({ message: 'Paciente no encontrado' })
+    }
+    
+    return response.status(200).json({ message: 'Paciente obtenido', data: pacienteData })
+  } catch (e) {
+    return response.status(500).json({ message: 'Error', error: e.message })
+  }
+}
 }
 
