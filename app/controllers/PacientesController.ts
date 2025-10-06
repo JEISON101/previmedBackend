@@ -36,13 +36,11 @@ export default class PacientesController {
       } = request.body()
 
       const userExist = await paciente.readByDoc(numero_documento)
-
       if (userExist) {
         return response.status(500).json({ message: 'El usuario ya se encuentra registrado' })
       }
 
       const hash = await bcrypt.hash(password, 10)
-
       const newPaciente = await paciente.create(
         {
           direccion_cobro,
@@ -79,6 +77,7 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
   async readAll({ response }: HttpContext) {
     try {
       const users = await paciente.read()
@@ -87,6 +86,7 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
   async readById({ params, response }: HttpContext) {
     try {
       const { id } = params
@@ -96,7 +96,8 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-  async readByITitular({  response }: HttpContext) {
+
+  async readByITitular({ response }: HttpContext) {
     try {
       const userTi = await paciente.readByTitular()
       return response.status(200).json({ message: 'Información obtenida', data: userTi })
@@ -104,6 +105,7 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
   async deleteById({ params, response }: HttpContext) {
     try {
       const { id } = params
@@ -113,6 +115,7 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
   async updateById({ params, request, response }: HttpContext) {
     try {
       const { id } = params
@@ -178,10 +181,9 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-  
+
   async readByUsuarioLogueado({ request, response }: HttpContext) {
     try {
-      // 👇 Forzamos auth como any para evitar error TS
       const auth: any = (request as any).auth
 
       if (!auth) {
@@ -209,5 +211,85 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-}
 
+  // 🔹 Nuevo método: crear beneficiario asociado a un titular
+  async addBeneficiario({ params, request, response }: HttpContext) {
+    try {
+      const { id_titular } = params
+      const {
+        nombre,
+        segundo_nombre,
+        apellido,
+        segundo_apellido,
+        email,
+        password,
+        direccion,
+        numero_documento,
+        fecha_nacimiento,
+        numero_hijos,
+        estrato,
+        autorizacion_datos,
+        habilitar,
+        genero,
+        estado_civil,
+        tipo_documento,
+        eps_id,
+        rol_id,
+        direccion_cobro,
+        ocupacion,
+        activo,
+      } = request.body()
+
+      const id_usuario = uuidv4()
+      const hash = await bcrypt.hash(password, 10)
+
+      const beneficiario = await paciente.addBeneficiario(
+        Number(id_titular),
+        {
+          direccion_cobro,
+          ocupacion,
+          activo,
+          beneficiario: true,
+          paciente_id: Number(id_titular),
+          usuario_id: id_usuario,
+        },
+        {
+          id_usuario,
+          nombre,
+          segundo_nombre,
+          apellido,
+          segundo_apellido,
+          email,
+          password: hash,
+          direccion,
+          numero_documento,
+          fecha_nacimiento,
+          numero_hijos,
+          estrato,
+          autorizacion_datos,
+          habilitar,
+          genero,
+          estado_civil,
+          tipo_documento,
+          eps_id,
+          rol_id,
+        }
+      )
+
+      return response.status(201).json({ message: 'Beneficiario creado', data: beneficiario })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
+    }
+  }
+
+  // 🔹 Nuevo método: obtener beneficiarios por titular
+  async readBeneficiariosByTitular({ params, response }: HttpContext) {
+    try {
+      const { id_titular } = params
+      const beneficiarios = await paciente.getBeneficiariosByTitular(Number(id_titular))
+      return response.status(200).json({ message: 'Beneficiarios obtenidos', data: beneficiarios })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
+    }
+  }
+}

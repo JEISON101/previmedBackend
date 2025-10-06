@@ -11,3 +11,5 @@ router.get('/pacientes/:id', paciente.readById);
 router.delete('/pacientes/:id', paciente.deleteById);
 router.put('/pacientes/:id', paciente.updateById);
 router.get('/pacientes/mi-perfil', paciente.readByUsuarioLogueado);
+router.post('/pacientes/:id_titular/beneficiarios', paciente.addBeneficiario);
+router.get('/pacientes/:id_titular/beneficiarios', paciente.readBeneficiariosByTitular);
