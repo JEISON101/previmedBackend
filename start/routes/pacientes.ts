@@ -1,14 +1,11 @@
-import PacientesController from "#controllers/PacientesController";
-import router from "@adonisjs/core/services/router";
+import router from '@adonisjs/core/services/router'
 
-const paciente = new PacientesController();
-
-router.post('/pacientes', paciente.create);
-router.get('/pacientes', paciente.readAll);
-router.get('/pacientes/titular', paciente.readByITitular);
-router.get('/pacientes/:id', paciente.readById);
-router.delete('/pacientes/:id', paciente.deleteById);
-router.put('/pacientes/:id', paciente.updateById);
-router.get('/pacientes/mi-perfil', paciente.readByUsuarioLogueado);
-router.get('/pacientes/por-usuario/:usuario_id', paciente.readByUsuarioId);
-router.get('/pacientes/beneficiarios', paciente.readBeneficiarios)
+router.post('/pacientes', '#controllers/PacientesController.create')
+router.get('/pacientes', '#controllers/PacientesController.readAll')
+router.get('/pacientes/titular', '#controllers/PacientesController.readByITitular')
+router.get('/pacientes/beneficiarios', '#controllers/PacientesController.readBeneficiarios')
+router.get('/pacientes/mi-perfil', '#controllers/.PacientesController.readByUsuarioLogueado')
+router.get('/pacientes/por-usuario/:usuario_id', '#controllers/PacientesController.readByUsuarioId')
+router.get('/pacientes/:id', '#controllers/PacientesController.readById')
+router.delete('/pacientes/:id', '#controllers/PacientesController.deleteById')
+router.put('/pacientes/:id', '#controllers/PacientesController.updateById')
