@@ -66,6 +66,22 @@ export default class PacientesServices {
   }
     async readByUsuarioId(usuarioId: string) {
     return await Paciente.query().where('usuario_id', usuarioId).first()
+  
   }
+   async readBeneficiarios() {
+  try {
+    const beneficiarios = await Paciente.query()
+      .where('beneficiario', true)
+      .preload('usuario')
+      .preload('paciente', (titularQuery) => {
+        titularQuery.preload('usuario')
+      })
+
+    return beneficiarios
+  } catch (error) {
+    throw new Error(`Error al obtener beneficiarios: ${error.message}`)
+  }
+}
+
 }
 
