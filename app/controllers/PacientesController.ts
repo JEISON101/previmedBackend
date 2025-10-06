@@ -223,5 +223,20 @@ export default class PacientesController {
     return response.status(500).json({ message: 'Error', error: e.message })
   }
 }
+async readBeneficiarios({ response }: HttpContext) {
+  try {
+    const data = await paciente.readBeneficiarios()
+    return response.status(200).json({
+      message: 'Beneficiarios obtenidos correctamente',
+      data,
+    })
+  } catch (e) {
+    return response.status(500).json({
+      message: 'Error al obtener beneficiarios',
+      error: e.message,
+    })
+  }
+}
+
 }
 
