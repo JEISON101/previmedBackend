@@ -5,7 +5,9 @@ import bcrypt from 'bcrypt'
 
 const paciente = new PacientesServices()
 
+
 export default class PacientesController {
+  private service = new PacientesServices()
   async create({ request, response }: HttpContext) {
     try {
       const id_usuario = uuidv4()
@@ -223,20 +225,13 @@ export default class PacientesController {
     return response.status(500).json({ message: 'Error', error: e.message })
   }
 }
-async readBeneficiarios({ response }: HttpContext) {
-  try {
-    const data = await paciente.readBeneficiarios()
-    return response.status(200).json({
-      message: 'Beneficiarios obtenidos correctamente',
-      data,
-    })
-  } catch (e) {
-    return response.status(500).json({
-      message: 'Error al obtener beneficiarios',
-      error: e.message,
-    })
+
+  async readBeneficiarios({ response }: HttpContext) {
+    try {
+      const data = await this.service.readBeneficiarios()
+      return response.ok({ data })
+    } catch (error) {
+      return response.badRequest({ error: error.message })
+    }
   }
 }
-
-}
-
