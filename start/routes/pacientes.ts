@@ -9,3 +9,7 @@ router.get('/pacientes/por-usuario/:usuario_id', '#controllers/PacientesControll
 router.get('/pacientes/:id', '#controllers/PacientesController.readById')
 router.delete('/pacientes/:id', '#controllers/PacientesController.deleteById')
 router.put('/pacientes/:id', '#controllers/PacientesController.updateById')
+router.post('/createBeneficiario', 'PacientesController, createBeneficiario')
+router.put('/updateBeneficiario/:id', 'PacientesController, updateBeneficiario')
+router.delete('/deleteBeneficiario/:id', 'PacientesController, deleteBeneficiario')
+router.get('/beneficiarios/:id', 'PacientesController, readBeneficiarioById')

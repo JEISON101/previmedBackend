@@ -226,12 +226,223 @@ export default class PacientesController {
   }
 }
 
-  async readBeneficiarios({ response }: HttpContext) {
+ async createBeneficiario({ request, response }: HttpContext) {
+  try {
+    const id_usuario = uuidv4()
+    const {
+      nombre,
+      segundo_nombre,
+      apellido,
+      segundo_apellido,
+      email,
+      password,
+      direccion,
+      numero_documento,
+      fecha_nacimiento,
+      numero_hijos,
+      estrato,
+      autorizacion_datos,
+      habilitar,
+      genero,
+      estado_civil,
+      tipo_documento,
+      eps_id,
+      rol_id,
+      direccion_cobro,
+      ocupacion,
+      activo,
+      beneficiario,
+      paciente_id,
+    } = request.body()
+
+    // 🧠 1️⃣ Validación básica
+    if (!paciente_id) {
+      return response.status(400).json({ message: 'Debe seleccionar un titular' })
+    }
+
+    const userExist = await paciente.readByDoc(numero_documento)
+    if (userExist) {
+      return response
+        .status(409)
+        .json({ message: 'El beneficiario ya se encuentra registrado' })
+    }
+
+    // 🧩 2️⃣ Asegurar valores válidos por defecto
+    const hash = await bcrypt.hash(password || '123456', 10)
+
+    const generoValido = ['Masculino', 'Femenino'].includes(genero)
+      ? genero
+      : 'Masculino'
+
+    const newBeneficiario = await paciente.create(
+      {
+        direccion_cobro: direccion_cobro || 'N/A',
+        ocupacion: ocupacion || 'N/A',
+        activo: activo ?? true,
+        beneficiario: beneficiario ?? true,
+        paciente_id,
+        usuario_id: id_usuario,
+      },
+      {
+        id_usuario,
+        nombre,
+        segundo_nombre: segundo_nombre || '',
+        apellido,
+        segundo_apellido: segundo_apellido || '',
+        email: email || `${numero_documento}@mail.com`,
+        password: hash,
+        direccion: direccion || 'N/A',
+        numero_documento,
+        fecha_nacimiento: fecha_nacimiento || '2000-01-01',
+        numero_hijos: numero_hijos || 0,
+        estrato: estrato || 1,
+        autorizacion_datos: autorizacion_datos ?? true,
+        habilitar: habilitar ?? true,
+        genero: generoValido,
+        estado_civil: estado_civil || 'Soltero',
+        tipo_documento: tipo_documento || 'Cédula de Ciudadanía',
+        eps_id: eps_id || 1,
+        rol_id: rol_id || 4,
+      }
+    )
+
+    return response.status(201).json({ message: 'Beneficiario creado', data: newBeneficiario })
+  } catch (e) {
+    console.error('❌ Error al crear beneficiario:', e)
+    return response.status(500).json({ message: 'Error', error: e.message })
+  }
+}
+
+
+ async readBeneficiarios({ response }: HttpContext) {
     try {
-      const data = await this.service.readBeneficiarios()
+      const data = await paciente.readBeneficiarios()
       return response.ok({ data })
-    } catch (error) {
-      return response.badRequest({ error: error.message })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
+
+async updateBeneficiario({ params, request, response }: HttpContext) {
+  try {
+    const { id } = params;
+    const body = request.body();
+
+    const {
+      nombre,
+      segundo_nombre,
+      apellido,
+      segundo_apellido,
+      email,
+      password,
+      direccion,
+      numero_documento,
+      fecha_nacimiento,
+      numero_hijos,
+      estrato,
+      autorizacion_datos,
+      habilitar,
+      genero,
+      estado_civil,
+      tipo_documento,
+      eps_id,
+      paciente_id,
+    } = body;
+
+    // ✅ Validar género válido
+    const generoValido =
+      genero === "Femenino" || genero === "Masculino" ? genero : "Masculino";
+
+    // ✅ Hashear password solo si se envía, si no, usar un dummy temporal
+    const hash: string = password
+      ? await bcrypt.hash(password, 10)
+      : await bcrypt.hash("temporal123", 10);
+
+    // ✅ Construcción de usuario completamente compatible con DataUsuario
+    const userUpdate: any = {
+      nombre,
+      segundo_nombre: segundo_nombre ?? "",
+      apellido,
+      segundo_apellido: segundo_apellido ?? "",
+      email,
+      password: hash, // 👈 siempre string (ya no undefined)
+      direccion: direccion ?? "N/A",
+      numero_documento,
+      fecha_nacimiento: fecha_nacimiento ?? "2000-01-01",
+      numero_hijos: numero_hijos ?? "0",
+      estrato: estrato ?? "1",
+      autorizacion_datos:
+        typeof autorizacion_datos === "boolean" ? autorizacion_datos : true,
+      habilitar: typeof habilitar === "boolean" ? habilitar : true,
+      genero: generoValido,
+      estado_civil: estado_civil ?? "Soltero",
+      tipo_documento: tipo_documento ?? "Cédula de Ciudadanía",
+      eps_id: eps_id ?? 1,
+      rol_id: 4,
+    };
+
+    const pacUpdate = {
+      direccion_cobro: "N/A",
+      ocupacion: "N/A",
+      activo: true,
+      beneficiario: true,
+      paciente_id: paciente_id ?? null,
+    };
+
+    // ✅ Llamada al servicio sin error de tipos
+    const updated = await paciente.update(id, pacUpdate, userUpdate);
+
+    return response.ok({
+      message: "Beneficiario actualizado correctamente",
+      data: updated,
+    });
+  } catch (error) {
+    console.error("❌ Error al actualizar beneficiario:", error);
+    return response
+      .status(500)
+      .json({ message: "Error", error: error.message });
+  }
+}
+
+
+
+
+async deleteBeneficiario({ params, response }: HttpContext) {
+  try {
+    const { id } = params
+    const deleted = await paciente.delete(id)
+
+    return response.ok({ message: 'Beneficiario eliminado', data: deleted })
+  } catch (e) {
+    if (e.message.includes('foreign key')) {
+      return response.status(409).json({
+        message: 'Error',
+        error: 'No se puede eliminar: el beneficiario tiene registros vinculados',
+      })
+    }
+    console.error('❌ Error al eliminar beneficiario:', e)
+    return response.status(500).json({ message: 'Error', error: e.message })
+  }
+}
+
+
+
+
+async readBeneficiarioById({ params, response }: HttpContext) {
+  try {
+    const { id } = params
+    const data = await paciente.readBeneficiarioById(Number(id))
+
+    if (!data) {
+      return response.status(404).json({ message: 'Beneficiario no encontrado' })
+    }
+
+    return response.ok({ message: 'Beneficiario obtenido', data })
+  } catch (error) {
+    console.error('❌ Error al leer beneficiario por ID:', error)
+    return response.status(500).json({ message: 'Error', error: error.message })
+  }
+}
+
 }
