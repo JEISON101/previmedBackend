@@ -49,8 +49,8 @@ export default class PacientesServices {
     const trx = await db.transaction()
     try {
       const pac = await Paciente.findOrFail(id, { client: trx })
-      const iduser = pac.usuario_id
-      const user = await Usuario.findOrFail(iduser, { client: trx })
+      const user = await Usuario.findOrFail(pac.usuario_id, { client: trx })
+
       await pac.useTransaction(trx).delete()
       await user.useTransaction(trx).delete()
 
@@ -58,10 +58,9 @@ export default class PacientesServices {
       return { pac, user }
     } catch (e) {
       await trx.rollback()
-      throw new Error(`Error al eliminar los registros ${e.message}`)
+      throw new Error(`Error al eliminar los registros: ${e.message}`)
     }
   }
-
   async update(id: number, data: DataPaciente, userD: DataUsuario) {
     const trx = await db.transaction()
     try {
@@ -118,6 +117,48 @@ export default class PacientesServices {
       return result
     } catch (error) {
       console.log('🟥 ERROR DETALLADO EN readBeneficiarios')
+  }
+}
+
+
+// 🟢 Leer beneficiario por ID (con su titular asociado)
+async readBeneficiarioById(id: number) {
+  try {
+    const beneficiario = await Paciente.query()
+      .where('id_paciente', id)
+      .where('beneficiario', true)
+      .preload('usuario')
+      .first()
+
+    if (!beneficiario) return null
+
+    // Buscar titular asociado
+    let titularNombre = 'Sin titular'
+    if (beneficiario.paciente_id) {
+      const titular = await Paciente.query()
+        .where('id_paciente', beneficiario.paciente_id)
+        .preload('usuario')
+        .first()
+
+      if (titular && titular.usuario) {
+        titularNombre = `${titular.usuario.nombre} ${titular.usuario.apellido}`
+      }
+    }
+
+    return {
+      id: beneficiario.id_paciente,
+      nombre: beneficiario.usuario?.nombre ?? '',
+      apellido: beneficiario.usuario?.apellido ?? '',
+      documento: beneficiario.usuario?.numero_documento ?? '',
+      email: beneficiario.usuario?.email ?? '',
+      genero: beneficiario.usuario?.genero ?? '',
+      direccion: beneficiario.usuario?.direccion ?? '',
+      paciente_id: beneficiario.paciente_id,
+      titular: titularNombre,
+    }
+  } catch (error) {
+    console.error('🟥 ERROR en readBeneficiarioById:', error)
+    throw new Error('Error al obtener el beneficiario por ID')
   }
 }
 }
