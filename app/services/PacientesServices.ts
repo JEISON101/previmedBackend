@@ -5,14 +5,13 @@ import { DataPaciente } from '../interfaces/pacientes.js'
 import { DataUsuario } from '../interfaces/usuarios.js'
 
 export default class PacientesServices {
-  /* ========== CREATE ========== */
   async create(data: DataPaciente, user: DataUsuario) {
     const trx = await db.transaction()
     try {
       // 1) Crear usuario
       const u = await Usuario.create(user as any, { client: trx })
 
-      // 2) Crear paciente (asegura FK usuario_id si no viene)
+      // 2) Crear paciente 
       const payload: any = {
         ...data,
         usuario_id: (data as any).usuario_id ?? (u as any).id_usuario ?? (u as any).id,

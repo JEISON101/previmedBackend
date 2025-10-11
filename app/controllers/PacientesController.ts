@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt'
 export default class PacientesController {
   private service = new PacientesServices()
 
-  // ✅ Crear paciente titular
+  // Crear paciente titular
   async create({ request, response }: HttpContext) {
     try {
       const id_usuario = uuidv4()
@@ -61,7 +61,7 @@ export default class PacientesController {
     }
   }
 
-  // ✅ Obtener todos los pacientes
+  // Obtener todos los pacientes
   async readAll({ response }: HttpContext) {
     try {
       const users = await this.service.read()
@@ -73,7 +73,7 @@ export default class PacientesController {
     }
   }
 
-  // ✅ Obtener titulares (coincide con GET /pacientes/titular)
+  // Obtener titulares (recordar aparece con GET /pacientes/titular)
   async readByTitular({ response }: HttpContext) {
     try {
       const data = await this.service.readByTitular()
@@ -85,7 +85,7 @@ export default class PacientesController {
     }
   }
 
-  // ✅ Crear beneficiario
+  // Crear beneficiario
   async createBeneficiario({ request, response }: HttpContext) {
     try {
       const id_usuario = uuidv4()
@@ -151,7 +151,7 @@ export default class PacientesController {
     }
   }
 
-  // ✅ Leer beneficiarios
+  // Leer beneficiarios
   async readBeneficiarios({ response }: HttpContext) {
     try {
       const data = await this.service.readBeneficiarios()
@@ -163,7 +163,7 @@ export default class PacientesController {
     }
   }
 
-  // ✅ Leer beneficiario por ID
+  // Leer beneficiario por ID
   async readBeneficiarioById({ params, response }: HttpContext) {
     try {
       const { id } = params
@@ -178,7 +178,7 @@ export default class PacientesController {
     }
   }
 
-  // ✅ Actualizar beneficiario (sin resetear password por defecto)
+  // Actualizar beneficiario 
   async updateBeneficiario({ params, request, response }: HttpContext) {
     try {
       const { id } = params
@@ -232,7 +232,7 @@ export default class PacientesController {
     }
   }
 
-  // ✅ Eliminar beneficiario
+  // Eliminar beneficiario
   async deleteBeneficiario({ params, response }: HttpContext) {
     try {
       const { id } = params
@@ -250,7 +250,7 @@ export default class PacientesController {
     }
   }
 
-  // ✅ Eliminar paciente titular (si lo usas desde el front)
+  // Eliminar paciente titular (si lo usas desde el front)
   async delete({ params, response }: HttpContext) {
     try {
       const { id } = params
