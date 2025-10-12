@@ -4,14 +4,19 @@ import db from '@adonisjs/lucid/services/db'
 import { DataPaciente } from '../interfaces/pacientes.js'
 import { DataUsuario } from '../interfaces/usuarios.js'
 
+
+type DataPacienteCompat = Omit<DataPaciente, 'paciente_id'> & {
+  paciente_id?: number | null
+}
+
 export default class PacientesServices {
-  async create(data: DataPaciente, user: DataUsuario) {
+  //CREATE 
+  // Acepta DataPaciente normal o con paciente_id null (compat)
+  async create(data: DataPacienteCompat, user: DataUsuario) {
     const trx = await db.transaction()
     try {
-      // 1) Crear usuario
       const u = await Usuario.create(user as any, { client: trx })
 
-      // 2) Crear paciente 
       const payload: any = {
         ...data,
         usuario_id: (data as any).usuario_id ?? (u as any).id_usuario ?? (u as any).id,
@@ -26,13 +31,13 @@ export default class PacientesServices {
     }
   }
 
-  /* ========== READS ========== */
+  //READS
   async read() {
     return await Paciente.query().preload('usuario')
   }
 
   async readByTitular() {
-    // Titulares: pacientes sin paciente_id (no dependientes)
+    // Titulares = pacientes sin paciente_id (no dependientes)
     return await Paciente.query().whereNull('paciente_id').preload('usuario')
   }
 
@@ -48,31 +53,19 @@ export default class PacientesServices {
     return await Paciente.query().where('usuario_id', usuarioId).first()
   }
 
-  /* ========== UPDATE ========== */
-  async update(id: number, data: DataPaciente, userD: DataUsuario) {
-    const trx = await db.transaction()
-    try {
-      const pac: any = await Paciente.findOrFail(id, { client: trx })
-      const user = await Usuario.findOrFail(pac.usuario_id, { client: trx })
-
-      // Actualiza paciente solo con los campos que vengan
-      pac.useTransaction(trx).merge(data as any)
-      await pac.save()
-
-      // Actualiza usuario solo con los campos que vengan
-      // (Si vas a actualizar password, mándala ya hasheada desde el controller)
-      user.useTransaction(trx).merge(userD as any)
-      await user.save()
-
-      await trx.commit()
-      return { pac, user }
-    } catch (e) {
-      await trx.rollback()
-      throw e
-    }
+  //UPDATE SOLO PACIENTES 
+  // Patch compatible que permite paciente_id: null SIN cambiar DataPaciente
+  async updatePacienteCampos(
+    id: number,
+    patch: Partial<DataPacienteCompat>
+  ) {
+    const pac: any = await Paciente.findOrFail(id)
+    pac.merge(patch as any)
+    await pac.save()
+    return pac
   }
 
-  /* ========== DELETE ========== */
+  //DELETE 
   async delete(id: number) {
     const trx = await db.transaction()
     try {
@@ -90,9 +83,8 @@ export default class PacientesServices {
     }
   }
 
-  /* ========== BENEFICIARIOS ========== */
+  //BENEFICIARIOS: LISTAS/DETALLES 
   async readBeneficiarios() {
-    // Beneficiarios = pacientes con beneficiario=true
     const beneficiarios = await Paciente.query()
       .where('beneficiario', true)
       .preload('usuario')
@@ -147,6 +139,51 @@ export default class PacientesServices {
       direccion: b.usuario?.direccion ?? '',
       paciente_id: b.paciente_id,
       titular: titularNombre,
+    }
+  }
+
+  //BENEFICIARIOS: ASOCIAR / DESVINCULAR 
+  async asociarBeneficiario(beneficiarioId: number, titularId: number) {
+    const beneficiario: any = await Paciente.findOrFail(beneficiarioId)
+    const titular: any = await Paciente.findOrFail(titularId)
+
+    if (beneficiarioId === titularId) {
+      throw new Error('paciente_id no puede ser el mismo paciente')
+    }
+    if (titular.beneficiario) {
+      throw new Error('El paciente indicado como titular es beneficiario; no puede ser titular')
+    }
+
+    beneficiario.merge({
+      beneficiario: true,
+      paciente_id: titular.id_paciente ?? titular.id,
+      activo: true,
+    })
+    await beneficiario.save()
+
+    return beneficiario
+  }
+
+  async desvincularBeneficiario(beneficiarioId: number, desactivar = true) {
+    const beneficiario: any = await Paciente.findOrFail(beneficiarioId)
+    beneficiario.merge({
+      paciente_id: null,
+      beneficiario: false,
+      activo: desactivar ? false : beneficiario.activo,
+    })
+    await beneficiario.save()
+    return beneficiario
+  }
+
+  async usuarioDeBeneficiario(beneficiarioId: number) {
+    const b: any = await Paciente.query()
+      .where('id_paciente', beneficiarioId)
+      .preload('usuario')
+      .firstOrFail()
+
+    return {
+      usuario_id: b.usuario?.id_usuario ?? b.usuario?.id,
+      usuario: b.usuario,
     }
   }
 }
