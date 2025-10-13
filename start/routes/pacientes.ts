@@ -1,26 +1,15 @@
-import PacientesController from '#controllers/PacientesController'
-import router from '@adonisjs/core/services/router'
-
-const paciente = new PacientesController()
-
-//  crear paciente
-router.post('/pacientes', paciente.create)
-
-//  listar todos los pacientes
-router.get('/pacientes', paciente.readAll)
-
-//  listar todos los beneficiarios
-router.get('/pacientes/beneficiarios', paciente.readBeneficiarios)
-
-//  listar todos los titulares
-router.get('/pacientes/titular', paciente.readByITitular)
-
-// listar paciente del usuario autenticado
-router.get('/pacientes/mi-perfil', paciente.readByUsuarioLogueado)
-
-// Buscar paciente por usuario_id (por beneficiario ojo)
-router.get('/pacientes/por-usuario/:usuario_id', paciente.readByUsuarioId)
-
-router.get('/pacientes/:id', paciente.readById)
-router.put('/pacientes/:id', paciente.updateById)
-router.delete('/pacientes/:id', paciente.deleteById)
+import router from '@adonisjs/core/services/router' 
+  
+   // Titulares
+  router.post('/', '#controllers/PacientesController.create')
+  router.get('/',  '#controllers/PacientesController.readAll')
+  router.get('/titular', '#controllers/PacientesController.readByTitular')
+  router.get('/beneficiarios', '#controllers/PacientesController.readBeneficiarios')
+  router.post('/beneficiarios', '#controllers/PacientesController.createBeneficiario')
+  router.post('/beneficiarios/asociar', '#controllers/PacientesController.asociarBeneficiario')
+  router.post('/beneficiarios/desvincular', '#controllers/PacientesController.desvincularBeneficiario')
+  router.get('/beneficiarios/:id/usuario', '#controllers/PacientesController.getUsuarioDeBeneficiario')
+  router.patch('/:id/campos', '#controllers/PacientesController.updateCamposPaciente') // solo tabla pacientes
+  router.delete('/:id', '#controllers/PacientesController.delete')
+  router.get('/beneficiarios/:id', '#controllers/PacientesController.readBeneficiarioById')
+  router.delete('/beneficiarios/:id', '#controllers/PacientesController.deleteBeneficiario')
