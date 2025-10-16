@@ -3,6 +3,7 @@ import router from '@adonisjs/core/services/router'
    // Titulares
   router.post('/', '#controllers/PacientesController.create')
   router.get('/',  '#controllers/PacientesController.readAll')
+  router.get('/titulares-completos', '#controllers/PacientesController.readTitularesCompletos') // ruta de titulares con membresia
   router.get('/titular', '#controllers/PacientesController.readByTitular')
   router.get('/beneficiarios', '#controllers/PacientesController.readBeneficiarios')
   router.post('/beneficiarios', '#controllers/PacientesController.createBeneficiario')
@@ -13,4 +14,3 @@ import router from '@adonisjs/core/services/router'
   router.delete('/:id', '#controllers/PacientesController.delete')
   router.get('/beneficiarios/:id', '#controllers/PacientesController.readBeneficiarioById')
   router.delete('/beneficiarios/:id', '#controllers/PacientesController.deleteBeneficiario')
-   router.get('/titulares-completos', '#controllers/PacientesController.readTitularesCompletos')
