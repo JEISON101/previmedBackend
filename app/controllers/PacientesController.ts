@@ -13,9 +13,7 @@ const asBool = (v: any) => v === true || v === 'true' || v === 1 || v === '1'
 export default class PacientesController {
   private service = new PacientesServices()
 
-  // PACIENTES (TITULARES) 
-
-  // Crear titular
+  // Crear paciente
   async create({ request, response }: HttpContext) {
     try {
       const body = request.body()
@@ -23,13 +21,16 @@ export default class PacientesController {
       const hash = await bcrypt.hash(body.password || '123456', 10)
 
       const newPaciente = await this.service.create(
+        //PACIENTE
         {
-          direccion_cobro: body.direccion_cobro,
+          direccion_cobro: body.direccion,
           ocupacion: body.ocupacion,
-          activo: body.activo ?? true,
-          beneficiario: false,
+          activo: body.activo ?? false,
+          beneficiario: body.beneficiario ?? false,
           usuario_id: id_usuario,
+          paciente_id: body.paciente_id
         },
+        // USUARIO
         {
           id_usuario,
           nombre: body.nombre,
@@ -43,13 +44,13 @@ export default class PacientesController {
           fecha_nacimiento: body.fecha_nacimiento,
           numero_hijos: body.numero_hijos,
           estrato: body.estrato,
-          autorizacion_datos: body.autorizacion_datos ?? true,
-          habilitar: body.habilitar ?? true,
+          autorizacion_datos: body.autorizacion_datos ?? false,
+          habilitar: body.habilitar ?? false,
           genero: body.genero,
           estado_civil: body.estado_civil,
           tipo_documento: body.tipo_documento,
           eps_id: body.eps_id,
-          rol_id: body.rol_id ?? 3,
+          rol_id:4,
         }
       )
 
