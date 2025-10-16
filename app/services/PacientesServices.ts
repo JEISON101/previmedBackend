@@ -68,19 +68,20 @@ export default class PacientesServices {
     return await Paciente.query().where('usuario_id', usuarioId).first()
   
   }
-   async readBeneficiarios() {
-  try {
-    const beneficiarios = await Paciente.query()
-      .where('beneficiario', true)
-      .preload('usuario')
-      .preload('paciente', (titularQuery) => {
-        titularQuery.preload('usuario')
-      })
+   async readBeneficiarios(pacienteId?: number) {
+  const query = Paciente.query()
+    .where('beneficiario', true)
+    .preload('usuario') //  solo datos del beneficiario
 
-    return beneficiarios
-  } catch (error) {
-    throw new Error(`Error al obtener beneficiarios: ${error.message}`)
+  if (pacienteId) {
+    // cuando PEDIMOS por titular, no traemos sus datos
+    query.where('paciente_id', pacienteId)
+  } else {
+    // cuando pedimos TODOS, sí incluimos titular para mostrar a quién pertenecen
+    query.preload('paciente', (t) => t.preload('usuario'))
   }
+
+  return await query
 }
 
 }
