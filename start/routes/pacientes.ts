@@ -13,3 +13,4 @@ import router from '@adonisjs/core/services/router'
   router.delete('/:id', '#controllers/PacientesController.delete')
   router.get('/beneficiarios/:id', '#controllers/PacientesController.readBeneficiarioById')
   router.delete('/beneficiarios/:id', '#controllers/PacientesController.deleteBeneficiario')
+   router.get('/titulares-completos', '#controllers/PacientesController.readTitularesCompletos')

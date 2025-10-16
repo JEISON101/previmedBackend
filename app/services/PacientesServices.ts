@@ -186,4 +186,10 @@ export default class PacientesServices {
       usuario: b.usuario,
     }
   }
+  async readTitularesCompletos() {
+  return await Paciente.query()
+    .whereNull('paciente_id')
+    .preload('usuario')
+    .preload('membresiaPaciente')
+  }
 }

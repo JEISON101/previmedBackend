@@ -2,6 +2,7 @@ import PacientesServices from '#services/PacientesServices'
 import { type HttpContext } from '@adonisjs/core/http'
 import { v4 as uuidv4 } from 'uuid'
 import bcrypt from 'bcrypt'
+import Paciente from '#models/paciente'
 
 
 const posInt = (v: any) => {
@@ -312,5 +313,13 @@ export default class PacientesController {
     } catch (e) {
       return response.status(404).json({ message: 'Error', error: (e as Error).message })
     }
+  }
+  async readTitularesCompletos({ response }: HttpContext) {
+  try {
+    const data = await this.service.readTitularesCompletos()
+    return response.ok({ message: 'Titulares con membresía', data })
+  } catch (e) {
+    return response.status(500).json({ message: 'Error', error: (e as Error).message })
+  }
   }
 }
