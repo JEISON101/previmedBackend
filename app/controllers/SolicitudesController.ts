@@ -17,11 +17,11 @@ type Filtros = {
 export default class SolicitudesController {
   constructor(private service: SolicitudesService) {}
 
-  // Validadores (sin TIPOS_SOLICITUD)
+
   private queryValidator = vine.compile(
     vine.object({
       estado: vine.boolean().optional(),
-      tipo_solicitud: vine.string().optional(), // validación como string
+      tipo_solicitud: vine.string().optional(),
       usuario_id: vine.string().optional(),
       page: vine.number().positive().withoutDecimals().optional(),
       perPage: vine.number().positive().max(100).withoutDecimals().optional(),
@@ -63,20 +63,14 @@ export default class SolicitudesController {
   // listar solicitudes
   async readAll({ request, response }: HttpContext) {
     try {
-      const raw = await request.validateUsing(this.queryValidator)
-      const filtros: Filtros = {
-        estado: raw.estado,
-        tipo_solicitud: raw.tipo_solicitud as TipoSolicitud | undefined,
-        usuario_id: raw.usuario_id,
-        page: raw.page,
-        perPage: raw.perPage,
-      }
-      const data = await this.service.listar(filtros)
+      const filtros = (await request.validateUsing(this.queryValidator)) as Filtros
+      const data = await this.service.listar(filtros as any) 
       return response.ok({ data })
     } catch (error: any) {
       return response.badRequest({ message: 'Error al listar', error: error.messages ?? error.message })
     }
   }
+
 
   // listar solicitudes con id
   async readId({ params, response }: HttpContext) {
@@ -89,10 +83,7 @@ export default class SolicitudesController {
   async create({ request, response }: HttpContext) {
     try {
       const payload = await request.validateUsing(this.createValidator)
-      const created = await this.service.crear({
-        ...payload,
-        tipo_solicitud: payload.tipo_solicitud as TipoSolicitud,
-      })
+      const created = await this.service.crear(payload as any) 
       return response.created({ message: 'Creada', data: created })
     } catch (error: any) {
       return response.badRequest({ message: 'Datos inválidos', error: error.messages ?? error.message })
@@ -103,10 +94,7 @@ export default class SolicitudesController {
   async update({ params, request, response }: HttpContext) {
     try {
       const data = await request.validateUsing(this.updateValidator)
-      const updated = await this.service.actualizar(params.id, {
-        ...data,
-        tipo_solicitud: (data.tipo_solicitud as TipoSolicitud | undefined) ?? undefined,
-      })
+      const updated = await this.service.actualizar(params.id, data as any) 
       if (!updated) return response.notFound({ message: 'Solicitud no encontrada' })
       return response.ok({ message: 'Actualizada', data: updated })
     } catch (error: any) {
@@ -115,14 +103,15 @@ export default class SolicitudesController {
   }
 
   // eliminar
-  async delete({ params, response }: HttpContext) {
+   async delete({ params, response }: HttpContext) {
     const ok = await this.service.eliminar(params.id)
     if (!ok) return response.notFound({ message: 'Solicitud no encontrada' })
     return response.ok({ message: 'Eliminada' })
   }
 
+
   // cambiar estado 
-  async cambiarEstado({ params, request, response }: HttpContext) {
+   async cambiarEstado({ params, request, response }: HttpContext) {
     const schema = vine.compile(vine.object({ estado: vine.boolean() }))
     const { estado } = await request.validateUsing(schema)
     const updated = await this.service.cambiarEstado(params.id, estado)

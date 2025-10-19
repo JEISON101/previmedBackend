@@ -26,6 +26,7 @@ type Filtros = {
 type ActualizarDTO = Partial<CrearS>
 
 export default class SolicitudesService {
+  
   async crear(payload: CrearS) {
     const s = await Solicitude.create({
       nombre: payload.nombre,
