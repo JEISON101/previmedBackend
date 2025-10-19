@@ -12,6 +12,9 @@ router.get('/pacientes', paciente.readAll)
 //  listar todos los beneficiarios
 router.get('/pacientes/beneficiarios', paciente.readBeneficiarios)
 
+//  asociar beneficiario a titular
+router.put('/pacientes/asociar/:id', paciente.asociarBeneficiario)
+
 //  listar todos los titulares
 router.get('/pacientes/titular', paciente.readByITitular)
 

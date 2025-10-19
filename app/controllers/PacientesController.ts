@@ -36,7 +36,6 @@ export default class PacientesController {
       } = request.body()
 
       const userExist = await paciente.readByDoc(numero_documento)
-
       if (userExist) {
         return response.status(500).json({ message: 'El usuario ya se encuentra registrado' })
       }
@@ -74,11 +73,13 @@ export default class PacientesController {
           rol_id,
         }
       )
+
       return response.status(201).json({ message: 'Creado', data: newPaciente })
     } catch (e) {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
   async readAll({ response }: HttpContext) {
     try {
       const users = await paciente.read()
@@ -87,6 +88,7 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
   async readById({ params, response }: HttpContext) {
     try {
       const { id } = params
@@ -96,7 +98,8 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-  async readByITitular({  response }: HttpContext) {
+
+  async readByITitular({ response }: HttpContext) {
     try {
       const userTi = await paciente.readByTitular()
       return response.status(200).json({ message: 'Información obtenida', data: userTi })
@@ -104,6 +107,7 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
   async deleteById({ params, response }: HttpContext) {
     try {
       const { id } = params
@@ -113,6 +117,7 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
+
   async updateById({ params, request, response }: HttpContext) {
     try {
       const { id } = params
@@ -178,65 +183,90 @@ export default class PacientesController {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-  
+
   async readByUsuarioLogueado({ request, response }: HttpContext) {
     try {
-      // 👇 Forzamos auth como any para evitar error TS
       const auth: any = (request as any).auth
-
       if (!auth) {
         return response.status(401).json({ message: 'No se encontró autenticación en el contexto' })
       }
 
       const user = await auth.use('api').authenticate()
       const usuarioId = user.id_usuario ?? user.id
-
       if (!usuarioId) {
         return response.status(400).json({ message: 'Usuario no encontrado en la sesión' })
       }
 
       const pacienteEncontrado = await paciente.readByUsuarioId(usuarioId)
-
       if (!pacienteEncontrado) {
         return response.status(404).json({ message: 'No existe paciente para este usuario' })
       }
 
-      return response.status(200).json({
-        message: 'Paciente obtenido',
-        data: pacienteEncontrado,
-      })
+      return response.status(200).json({ message: 'Paciente obtenido', data: pacienteEncontrado })
     } catch (e) {
       return response.status(500).json({ message: 'Error', error: e.message })
     }
   }
-  async readByUsuarioId({ params, response }: HttpContext) {
-  try {
-    const { usuario_id } = params
-    const pacienteData = await paciente.readByUsuarioId(usuario_id)
-    
-    if (!pacienteData) {
-      return response.status(404).json({ message: 'Paciente no encontrado' })
-    }
-    
-    return response.status(200).json({ message: 'Paciente obtenido', data: pacienteData })
-  } catch (e) {
-    return response.status(500).json({ message: 'Error', error: e.message })
-  }
-}
-async readBeneficiarios({ params,response }: HttpContext) {
-  try {
-    const {paciente_id } = params
-    const data = await paciente.readBeneficiarios(Number(paciente_id))
-    return response.status(200).json({
-      message: 'Beneficiarios del titular obtenidos correctamente',
-      data,
-    })
-  } catch (e) {
-    return response.status(500).json({
-      message: 'Error al obtener beneficiarios del titular',
-      error: e.message,
-    })
-  }
-}
 
+  async readByUsuarioId({ params, response }: HttpContext) {
+    try {
+      const { usuario_id } = params
+      const pacienteData = await paciente.readByUsuarioId(usuario_id)
+      if (!pacienteData) {
+        return response.status(404).json({ message: 'Paciente no encontrado' })
+      }
+      return response.status(200).json({ message: 'Paciente obtenido', data: pacienteData })
+    } catch (e) {
+      return response.status(500).json({ message: 'Error', error: e.message })
+    }
+  }
+
+  async readBeneficiarios({ params, response }: HttpContext) {
+    try {
+      const { paciente_id } = params
+      const data = await paciente.readBeneficiarios(Number(paciente_id))
+      return response
+        .status(200)
+        .json({ message: 'Beneficiarios del titular obtenidos correctamente', data })
+    } catch (e) {
+      return response
+        .status(500)
+        .json({ message: 'Error al obtener beneficiarios del titular', error: e.message })
+    }
+  }
+
+  /**
+   * ✅ Asociar beneficiario con titular
+   * PUT /pacientes/asociar/:id
+   * Body: { paciente_id: number }
+   */
+  async asociarBeneficiario({ params, request, response }: HttpContext) {
+    try {
+      const { id } = params
+      const { paciente_id } = request.only(['paciente_id'])
+
+      if (!paciente_id) {
+        return response.status(400).json({ message: 'Se requiere paciente_id (id del titular)' })
+      }
+
+      const idBeneficiario = Number(id)
+      const idTitular = Number(paciente_id)
+
+      if (isNaN(idBeneficiario) || isNaN(idTitular)) {
+        return response.status(400).json({ message: 'IDs inválidos' })
+      }
+
+      const beneficiarioActualizado = await paciente.asociarBeneficiario(idBeneficiario, idTitular)
+
+      return response.status(200).json({
+        message: 'Beneficiario asociado correctamente',
+        data: beneficiarioActualizado,
+      })
+    } catch (e) {
+      console.error('Error asociarBeneficiario:', e)
+      return response
+        .status(500)
+        .json({ message: 'Error al asociar beneficiario', error: e.message })
+    }
+  }
 }
