@@ -30,18 +30,33 @@ export default class MembresiasService {
   }
 
   // Crear membresía y asociar paciente si se envía
-  async crear(data: Partial<Membresia>, paciente_id?: number) {
-    const nueva = await Membresia.create(data)
+  // MembresiasService.ts
+async crear(data: Partial<Membresia>, paciente_id?: number) {
+  // 1️⃣ Crear la membresía
+  const nueva = await Membresia.create(data)
 
-    if (paciente_id) {
-      await MembresiaXPaciente.create({
-        paciente_id,
-        membresia_id: nueva.id_membresia
-      })
-    }
-
-    return await this.obtenerPorId(nueva.id_membresia)
+  // 2️⃣ Asociar paciente si viene paciente_id
+  if (paciente_id) {
+    await MembresiaXPaciente.create({
+      paciente_id,
+      membresia_id: nueva.id_membresia
+    })
   }
+
+  // 3️⃣ Cargar relación membresiaPaciente antes de devolver
+  const membresiaCompleta = await Membresia.query()
+    .where('id_membresia', nueva.id_membresia)
+    .preload('membresiaPaciente', (mpQuery) => {
+      mpQuery.preload('paciente', (pQuery) => {
+        pQuery.preload('usuario') // si quieres info del usuario
+      })
+    })
+    .firstOrFail()
+
+  return membresiaCompleta
+}
+
+
 
   // Actualizar membresía
   async actualizar(id: number, data: Partial<Membresia>) {
