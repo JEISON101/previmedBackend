@@ -30,3 +30,6 @@ router.get('/pacientes/por-usuario/:usuario_id', paciente.readByUsuarioId)
 router.get('/pacientes/:id', paciente.readById)
 router.put('/pacientes/:id', paciente.updateById)
 router.delete('/pacientes/:id', paciente.deleteById)
+
+//ruta para crear un titular por medio del flujo
+router.post('/paciente/crear-titular', paciente.registroCompletoTitular)

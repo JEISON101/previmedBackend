@@ -3,6 +3,9 @@ import db from '@adonisjs/lucid/services/db'
 import { DataPaciente } from '../interfaces/pacientes.js'
 import Usuario from '#models/usuario'
 import { DataUsuario } from '../interfaces/usuarios.js'
+import Membresia from '#models/membresia'
+import MembresiaXPaciente from '#models/membresia_x_paciente'
+import RegistrosPago from '#models/registros_pago'
 
 export default class PacientesServices {
   /**
@@ -122,6 +125,60 @@ export default class PacientesServices {
     } catch (e) {
       await trx.rollback()
       throw new Error(`Error al asociar beneficiario: ${e.message}`)
+    }
+  }
+
+  async registroCompletoTitular(data: any) {
+    const trx = await db.transaction()
+
+    try {
+      const { usuario, paciente, contrato, pago } = data
+
+      // 1. Crear Usuario
+      const nuevoUsuario = new Usuario()
+      nuevoUsuario.useTransaction(trx)
+      Object.assign(nuevoUsuario, usuario)
+      await nuevoUsuario.save()
+
+      // 2. Crear Paciente
+      const nuevoPaciente = new Paciente()
+      nuevoPaciente.useTransaction(trx)
+      nuevoPaciente.usuario_id = nuevoUsuario.id_usuario
+      Object.assign(nuevoPaciente, paciente)
+      await nuevoPaciente.save()
+
+      // 3. Crear Contrato
+      const nuevoContrato = new Membresia()
+      nuevoContrato.useTransaction(trx)
+      Object.assign(nuevoContrato, contrato)
+      await nuevoContrato.save()
+
+      // 4. Crear relación en tabla intermedia
+      const pacienteContrato = new MembresiaXPaciente()
+      pacienteContrato.useTransaction(trx)
+      pacienteContrato.paciente_id = nuevoPaciente.id_paciente
+      pacienteContrato.membresia_id = nuevoContrato.id_membresia
+      await pacienteContrato.save()
+
+      // 5. Crear Pago
+      const nuevoPago = new RegistrosPago()
+      nuevoPago.useTransaction(trx)
+      nuevoPago.membresia_id = nuevoContrato.id_membresia
+      Object.assign(nuevoPago, pago)
+      await nuevoPago.save()
+
+      await trx.commit()
+
+      return {
+          usuario: nuevoUsuario,
+          paciente: nuevoPaciente,
+          contrato: nuevoContrato,
+          pago: nuevoPago
+      }
+
+    } catch (error) {
+      await trx.rollback()
+      throw error
     }
   }
 }
