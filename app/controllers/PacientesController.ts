@@ -281,7 +281,7 @@ export default class PacientesController {
       data.usuario.rol_id = 4
       data.contrato.firma =` ${data.usuario.nombre} ${data.usuario.apellido}`
       data.contrato.estado = false
-      data.pago.fecha_pago = Date.now()
+      data.pago.fecha_pago = data.pago.fecha_inicio
       
       const resultado = await paciente.registroCompletoTitular(data)
 
