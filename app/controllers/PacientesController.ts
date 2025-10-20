@@ -269,4 +269,32 @@ export default class PacientesController {
         .json({ message: 'Error al asociar beneficiario', error: e.message })
     }
   }
+
+    //crear titular, flujo completo
+    public async registroCompletoTitular({ request, response }: HttpContext) {
+    try {
+      const data = request.all()
+      data.usuario.id_usuario = uuidv4()
+      const pass = await bcrypt.hash(data.usuario.password, 10)
+      data.usuario.password = pass
+      data.paciente.direccion_cobro = data.usuario.direccion
+      data.usuario.rol_id = 4
+      data.contrato.firma =` ${data.usuario.nombre} ${data.usuario.apellido}`
+      data.contrato.estado = false
+      data.pago.fecha_pago = Date.now()
+      
+      const resultado = await paciente.registroCompletoTitular(data)
+
+      return response.status(201).json({
+        message: 'Registro exitoso',
+        data: resultado,
+      })
+
+    } catch (error) {
+      return response.status(500).json({
+        message: 'Error en el registro',
+        error: error.message
+      })
+    }
+  }
 }
