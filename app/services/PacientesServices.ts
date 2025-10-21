@@ -132,48 +132,79 @@ export default class PacientesServices {
     const trx = await db.transaction()
 
     try {
-      const { usuario, paciente, contrato, pago } = data
+      const { titular, beneficiarios = [], contrato, pago } = data
 
-      // 1. Crear Usuario
-      const nuevoUsuario = new Usuario()
-      nuevoUsuario.useTransaction(trx)
-      Object.assign(nuevoUsuario, usuario)
-      await nuevoUsuario.save()
+      // Crear titular
+      const nuevoTitular = new Usuario()
+      nuevoTitular.useTransaction(trx)
+      Object.assign(nuevoTitular, titular.usuario)
+      await nuevoTitular.save()
 
-      // 2. Crear Paciente
+      // Crear paciente titular
       const nuevoPaciente = new Paciente()
       nuevoPaciente.useTransaction(trx)
-      nuevoPaciente.usuario_id = nuevoUsuario.id_usuario
-      Object.assign(nuevoPaciente, paciente)
+      nuevoPaciente.usuario_id = nuevoTitular.id_usuario
+      Object.assign(nuevoPaciente, titular.paciente)
       await nuevoPaciente.save()
 
-      // 3. Crear Contrato
+      // Crear contrato
       const nuevoContrato = new Membresia()
       nuevoContrato.useTransaction(trx)
       Object.assign(nuevoContrato, contrato)
       await nuevoContrato.save()
 
-      // 4. Crear relación en tabla intermedia
+      // Crear relación en tabla intermedia
       const pacienteContrato = new MembresiaXPaciente()
       pacienteContrato.useTransaction(trx)
       pacienteContrato.paciente_id = nuevoPaciente.id_paciente
       pacienteContrato.membresia_id = nuevoContrato.id_membresia
       await pacienteContrato.save()
 
-      // 5. Crear Pago
+      // Crear Pago
       const nuevoPago = new RegistrosPago()
       nuevoPago.useTransaction(trx)
       nuevoPago.membresia_id = nuevoContrato.id_membresia
       Object.assign(nuevoPago, pago)
       await nuevoPago.save()
 
+      // Crear beneficiarios
+    const beneficiariosCreados = []
+    
+    for (const beneficiario of beneficiarios) {
+        // Crear Usuario Beneficiario
+        const nuevoUsuarioBeneficiario = new Usuario()
+        nuevoUsuarioBeneficiario.useTransaction(trx)
+        Object.assign(nuevoUsuarioBeneficiario, beneficiario.usuario)
+        await nuevoUsuarioBeneficiario.save()
+
+        // Crear Paciente Beneficiario
+        const nuevoPacienteBeneficiario = new Paciente()
+        nuevoPacienteBeneficiario.useTransaction(trx)
+        nuevoPacienteBeneficiario.usuario_id = nuevoUsuarioBeneficiario.id_usuario
+        nuevoPacienteBeneficiario.paciente_id = nuevoPaciente.id_paciente
+        Object.assign(nuevoPacienteBeneficiario, beneficiario.paciente)
+        await nuevoPacienteBeneficiario.save()
+
+        // Relacionar Beneficiario con Contrato
+        const beneficiarioContrato = new MembresiaXPaciente()
+        beneficiarioContrato.useTransaction(trx)
+        beneficiarioContrato.paciente_id = nuevoPacienteBeneficiario.id_paciente
+        beneficiarioContrato.membresia_id = nuevoContrato.id_membresia
+        await beneficiarioContrato.save()
+
+        beneficiariosCreados.push({
+          usuario: nuevoUsuarioBeneficiario,
+          paciente: nuevoPacienteBeneficiario
+        })
+      }
+
       await trx.commit()
 
       return {
-          usuario: nuevoUsuario,
-          paciente: nuevoPaciente,
+          titular: {nuevoTitular, nuevoPaciente},
           contrato: nuevoContrato,
-          pago: nuevoPago
+          pago: nuevoPago,
+          beneficiarios: beneficiariosCreados
       }
 
     } catch (error) {
