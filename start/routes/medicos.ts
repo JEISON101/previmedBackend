@@ -4,6 +4,11 @@ const MedicosController = () => import('#controllers/MedicosController')
 
 // Rutas para médicos
 router.group(() => {
+
+  //Obtener médico por usuario_id
+  router.get('/usuario/:usuario_id', [MedicosController, 'listarPorUsuario'])
+
+
   // médicos disponibles - debe ir antes de :id
   router.get('/disponibles', [MedicosController, 'disponibles'])
   

@@ -104,4 +104,26 @@ export default class VisitasController {
       return response.json({ error: error.message })
     }
   }
+
+  async listarVisitasPaciente({ params, response }: HttpContext) {
+    try {
+      const paciente_id = Number(params.paciente_id)
+      const visitas = await visitasService.listarPorPaciente(paciente_id)
+      return response.json({ msj: visitas })
+    } catch (error) {
+      return response.json({ error: error.message })
+    } 
+  }
+
+  async listarVisitasMedico({ params, response }: HttpContext) {
+  try {
+    const medico_id = Number(params.medico_id)
+    const visitas = await visitasService.listarPorMedico(medico_id)
+    return response.json({ msj: visitas })
+  } catch (error) {
+    return response.json({ error: error.message })
+  }
+}
+
+
 }

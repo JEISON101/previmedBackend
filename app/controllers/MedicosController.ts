@@ -242,4 +242,23 @@ export default class MedicosController {
       })
     }
   }
+
+  //GET /medicos/usuario/:usuario_id 
+  async listarPorUsuario({ params, response }: HttpContext) {
+    try {
+      const medico = await this.medicoService.obtenerPorUsuarioId(params.usuario_id)
+
+      if (!medico) {
+        return response.notFound({ message: 'Médico no encontrado' })
+      }
+
+      return response.ok({ msj: medico })
+    } catch (error) {
+      return response.internalServerError({
+        message: 'Error al obtener médico por usuario_id',
+        error: error.message,
+      })
+    }
+  }
+
 }

@@ -103,6 +103,20 @@ export default class MedicoService implements MedicoServiceInterface {
     return medicos.map(medico => this.transformarAResponse(medico))
   }
 
+  async obtenerPorUsuarioId(usuarioId: string): Promise<MedicoResponse | null> {
+    try {
+      const medico = await Medico.query()
+        .where('usuario_id', usuarioId)
+        .preload('usuario')
+        .first()
+
+      return medico ? this.transformarAResponse(medico) : null
+    } catch {
+      return null
+    }
+  }
+
+
   private transformarAResponse(medico: Medico): MedicoResponse {
     return {
       id_medico: medico.id_medico,
