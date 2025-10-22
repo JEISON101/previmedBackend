@@ -41,7 +41,7 @@ export default class UsuariosController {
         maxAge: 1000 * 60 * 60,
       })
 
-      return response.status(200).json({ message: 'Acceso permitido', data:{id: usuario.id_usuario, documento: usuario.numero_documento, rol:usuario.rol}, jwt:token })
+      return response.status(200).json({ message: 'Acceso permitido', data:{id: usuario.id_usuario, nombre: `${usuario.nombre}  ${usuario.apellido}`, documento: usuario.numero_documento, rol:usuario.rol}, jwt:token })
     } catch (error) {
       return response.status(500).json({
         msg: 'Error interno en el login',

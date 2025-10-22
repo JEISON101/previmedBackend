@@ -115,6 +115,7 @@ export default class VisitasController {
     } 
   }
 
+
   async listarVisitasMedico({ params, response }: HttpContext) {
   try {
     const medico_id = Number(params.medico_id)
@@ -124,6 +125,5 @@ export default class VisitasController {
     return response.json({ error: error.message })
   }
 }
-
 
 }

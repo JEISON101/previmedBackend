@@ -6,7 +6,7 @@ export default class UsuarioService {
   
   // Métodos CRUD 
   async getAll() {
-    return await Usuario.all()
+    return await Usuario.query().preload('rol').preload('eps')
   }
 
   async getById(id: number) {

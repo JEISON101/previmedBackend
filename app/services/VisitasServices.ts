@@ -67,6 +67,7 @@ class VisitasServices {
       .preload('medico')
       .preload('barrio')
   }
+
   async listarPorMedico(medicoId: number) {
   return await Visita.query()
     .where('medico_id', medicoId)
