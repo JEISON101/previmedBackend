@@ -219,7 +219,7 @@ export default class PacientesServices {
       if (!pac) {
         return 'Paciente no encontrado'
       }
-      const pacientes = await Paciente.query().where('paciente_id', pac.id_paciente).orWhere('id_paciente', pac.id_paciente).preload('usuario')
+      const pacientes = await Paciente.query().where('paciente_id', pac.paciente_id? pac.paciente_id : pac.id_paciente).orWhere('id_paciente', pac.paciente_id? pac.paciente_id : pac.id_paciente).preload('usuario')
       return pacientes
     } catch (error) {
       return 'Error al obtener los pacientes'
