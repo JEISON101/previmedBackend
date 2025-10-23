@@ -212,4 +212,17 @@ export default class PacientesServices {
       throw error
     }
   }
+
+  async getUsuariosId(id: string) {
+    try {
+      const pac = await Paciente.query().where('usuario_id', id).first()
+      if (!pac) {
+        return 'Paciente no encontrado'
+      }
+      const pacientes = await Paciente.query().where('paciente_id', pac.id_paciente).orWhere('id_paciente', pac.id_paciente).preload('usuario')
+      return pacientes
+    } catch (error) {
+      return 'Error al obtener los pacientes'
+    }
+  }
 }

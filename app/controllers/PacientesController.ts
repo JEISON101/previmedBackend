@@ -357,4 +357,15 @@ export default class PacientesController {
       })
     }
   }
+
+  async getUsuariosId({params, response}:HttpContext){
+    const user = new PacientesServices
+    try {
+      const {id} = params
+      const res = await user.getUsuariosId(id)
+      return  response.status(200).json(res)
+    } catch (error) {
+      return response.status(500).json(error.message)
+    }
+  }
 }
