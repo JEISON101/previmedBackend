@@ -33,3 +33,6 @@ router.delete('/pacientes/:id', paciente.deleteById)
 
 //ruta para crear un titular por medio del flujo
 router.post('/paciente/crear-titular', paciente.registroCompletoTitular)
+
+//para obtener el titular y beneficiario con el id de usuario del context
+router.get('/usuarios/pacientes/:id', paciente.getUsuariosId)
