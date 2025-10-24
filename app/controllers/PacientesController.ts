@@ -2,6 +2,7 @@ import PacientesServices from '#services/PacientesServices'
 import { type HttpContext } from '@adonisjs/core/http'
 import { v4 as uuidv4 } from 'uuid'
 import bcrypt from 'bcrypt'
+import UsuarioService from '#services/UsuariosServices'
 
 const paciente = new PacientesServices()
 
@@ -273,28 +274,98 @@ export default class PacientesController {
     //crear titular, flujo completo
     public async registroCompletoTitular({ request, response }: HttpContext) {
     try {
+      const user = new UsuarioService
       const data = request.all()
-      data.usuario.id_usuario = uuidv4()
-      const pass = await bcrypt.hash(data.usuario.password, 10)
-      data.usuario.password = pass
-      data.paciente.direccion_cobro = data.usuario.direccion
-      data.usuario.rol_id = 4
-      data.contrato.firma =` ${data.usuario.nombre} ${data.usuario.apellido}`
-      data.contrato.estado = false
-      data.pago.fecha_pago = data.pago.fecha_inicio
-      
-      const resultado = await paciente.registroCompletoTitular(data)
 
-      return response.status(201).json({
-        message: 'Registro exitoso',
-        data: resultado,
-      })
+      if (!data.titular || !data.contrato || !data.pago) {
+        return response.status(400).json({
+          message: 'Datos incompletos, se requiere titular, contrato y pago'
+        })
+      }
+      // Verificar que el titular no esté registrado
+      const titular = await user.doc(data.titular.usuario.numero_documento)
+      if (titular != null) {
+        return response.status(400).json({
+          message: `El documento del titular ${await data.titular.usuario.nombre} ${await data.titular.usuario.apellido} ya se encuentra registrado`
+        })
+      }
+
+      // Datos del titular
+      data.titular.usuario.id_usuario = uuidv4()
+      data.titular.usuario.password = await bcrypt.hash(data.titular.usuario.password, 10)
+      data.titular.paciente.direccion_cobro = data.titular.usuario.direccion
+      data.titular.usuario.rol_id = 4
+
+      // Datos del contrato
+      data.contrato.firma =` ${data.titular.usuario.nombre} ${data.titular.usuario.apellido}`
+      data.contrato.estado = false // estará innactivo hasta que se verifique el pago
+      // Datos del pago
+      data.pago.fecha_pago = data.pago.fecha_inicio
+
+      // Beneficiarios
+      if (data.beneficiarios && Array.isArray(data.beneficiarios)) {
+      for (const beneficiario of data.beneficiarios) {
+        // Validar que el beneficiario no venga nulo
+        if(
+          !beneficiario.usuario.nombre ||
+          !beneficiario.usuario.apellido ||
+          !beneficiario.usuario.numero_documento ||
+          !beneficiario.usuario.tipo_documento ||
+          !beneficiario.usuario.fecha_nacimiento ||
+          !beneficiario.usuario.email ||
+          !beneficiario.usuario.direccion ||
+          !beneficiario.usuario.autorizacion_datos
+        ){
+          return response.status(400).json({
+            message: `Beneficiario con campos nulos`
+          })
+        }
+
+        // Validar que el beneficiario no esté registrado
+        const pacienteBeneficiario = await user.doc(beneficiario.usuario.numero_documento)
+        if (pacienteBeneficiario) {
+          return response.status(400).json({
+            message: `El docuemento del beneficiario ${beneficiario.usuario.nombre} ${beneficiario.usuario.apellido} ya se encuentra registrado`
+          })
+        }
+
+        beneficiario.usuario.id_usuario = uuidv4()
+        // si no llega la contraseña se hereda la del titular (ya viene hasheada)
+        if (!beneficiario.usuario.password) {
+          beneficiario.usuario.password = data.titular.usuario.password
+        } else {
+          beneficiario.usuario.password = await bcrypt.hash(beneficiario.usuario.password, 10)
+        }
+        // si no llega una direccion se hereda la del titular
+        beneficiario.paciente.direccion_cobro = beneficiario.usuario.direccion || data.titular.usuario.direccion
+        beneficiario.usuario.rol_id = 4
+        beneficiario.paciente.beneficiario = true
+      }
+    }
+      
+    const resultado = await paciente.registroCompletoTitular(data)
+
+    return response.status(201).json({
+      message: 'Registro exitoso',
+      data: resultado,
+    })
 
     } catch (error) {
       return response.status(500).json({
         message: 'Error en el registro',
         error: error.message
       })
+    }
+  }
+
+  async getUsuariosId({params, response}:HttpContext){
+    const user = new PacientesServices
+    try {
+      const {id} = params
+      const res = await user.getUsuariosId(id)
+      return  response.status(200).json(res)
+    } catch (error) {
+      return response.status(500).json(error.message)
     }
   }
 }
