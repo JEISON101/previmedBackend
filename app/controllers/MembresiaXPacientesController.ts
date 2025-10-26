@@ -71,4 +71,17 @@ export default class MembresiaXPacienteController {
     await this.service.delete(id)
     return response.noContent()
   }
+
+  async getByUserId({params, response}: Ctx){
+    try {
+      const {id} = params
+      const res = await this.service.getByUserId(id);
+      if(!res){
+        return response.status(404).json('Recursos no encontrados')
+      }
+      return response.status(200).json(res)
+    } catch (error) {
+      return response.status(500).json(error.message)
+    }
+  }
 }
