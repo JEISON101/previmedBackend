@@ -1,9 +1,6 @@
 import { HttpContext } from '@adonisjs/core/http'
 import MembresiasService from '#services/MembresiasServices'
-import fs from 'fs/promises'
-import Handlebars from 'handlebars'
 import puppeteer from 'puppeteer'
-import { join } from 'path'
 import { plantillaContrato } from '../templates/plantillaContrato.js'
 
 export default class MembresiasController {
