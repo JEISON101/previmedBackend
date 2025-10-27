@@ -7,3 +7,4 @@ router.get('/registro-pago/:id', (ctx) => controller.get_registro_pago_id(ctx));
 router.post('/registro-pago', (ctx) => controller.create_registro_pago(ctx));
 router.put('/registro-pago/:id', (ctx) => controller.update_registro_pago(ctx));
 router.delete('/registro-pago/:id', (ctx) => controller.delete_registro_pago(ctx));
+router.get('/registros-pago/membresia/:id', (ctx) => controller.get_pagos_by_membresia(ctx));

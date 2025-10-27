@@ -68,4 +68,12 @@ export default class RegistrosPagoService {
     const registro = await RegistrosPago.findOrFail(id)
     await registro.delete()
   }
+
+  async get_pagos_by_membresia(id: number) {
+    const pagos = await RegistrosPago.query()
+    .where('membresia_id', id)
+    .preload('formaPago')
+    .orderBy('id_registro', 'desc')
+    return pagos
+  }
 }
