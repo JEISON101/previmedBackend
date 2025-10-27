@@ -52,4 +52,8 @@ export default class UsuarioService {
       throw new Error('No se pudo crear el usuario')
     }
   }
+
+  async getUsersAdmin(){
+    return await Usuario.query().where('rol_id', 1);
+  }
 }

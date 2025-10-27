@@ -1,4 +1,5 @@
 import MembresiaXPaciente from "#models/membresia_x_paciente"
+import Paciente from "#models/paciente"
 import { DataMembresiaXPaciente } from "../interfaces/membresia_x_paciente.js"
 
 export default class MembresiaXPacienteService {
@@ -25,5 +26,15 @@ export default class MembresiaXPacienteService {
     const registro = await MembresiaXPaciente.findOrFail(id)
     await registro.delete()
     return { message: 'MembresiaXPaciente eliminado correctamente' }
+  }
+
+  async getByUserId(id: string){
+    const paciente = await Paciente.query().where('usuario_id', id).preload('usuario').first();
+    const res = await MembresiaXPaciente.query()
+    .where('paciente_id', paciente?.id_paciente??'')
+    .preload('membresia', (queryMembresia)=>{queryMembresia.preload('plan')})
+    .orderBy('id_membresia_x_paciente', 'desc')
+    .first()
+    return res
   }
 }
