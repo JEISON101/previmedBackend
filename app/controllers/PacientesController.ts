@@ -3,6 +3,14 @@ import { type HttpContext } from '@adonisjs/core/http'
 import { v4 as uuidv4 } from 'uuid'
 import bcrypt from 'bcrypt'
 import UsuarioService from '#services/UsuariosServices'
+import mail from '@adonisjs/mail/services/main'
+import { emailBienvenidaTitular } from '../templates/emailBienvenidaTitular.js'
+import { emailBienvenidaBeneficiario } from '../templates/emailBienvenidaBeneficiario.js'
+import { emailVerificarPagoAdmin } from '../templates/emailVerificarPagoAdmin.js'
+import { generarContratoPDF } from './MembresiasController.js'
+import FormasPagosServices from '#services/FormasPagosServices'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 const paciente = new PacientesServices()
 
@@ -344,6 +352,96 @@ export default class PacientesController {
     }
       
     const resultado = await paciente.registroCompletoTitular(data)
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+
+    const terminosPath = path.join(__dirname, '..', 'uploads', 'Terminos_y_Condiciones_PREVIMED.pdf')
+
+    // generar el pdf del contrato
+    const contratoPdf = await generarContratoPDF({
+      direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+      telefonoPrevimed: '310 6236219',
+      beneficiarios: resultado.beneficiarios,
+      titularNombre: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre??''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido??''}`,
+      titularEmail: resultado.titular.nuevoTitular.email,
+      titularDocumento: resultado.titular.nuevoTitular.numero_documento,
+      membresia: resultado.contrato.numero_contrato
+    });
+
+    // enviar email de bienvenida al titular
+      await mail.send((message) => {
+        message
+          .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+          .to((data.titular.usuario.email).trim())
+          .subject(`Registro exitoso`)
+          .html(emailBienvenidaTitular({
+            nombre: data.titular.usuario.nombre,
+            apellido: data.titular.usuario.apellido,
+            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+            telefonoPrevimed: '310 6236219',
+            beneficiarios: resultado.beneficiarios
+          }))
+          .attachData(Buffer.from(contratoPdf), {
+            filename: `Contrato-${resultado.titular.nuevoTitular.numero_documento}.pdf`,
+            contentType: 'application/pdf',
+          })
+          .attach(terminosPath)
+      })
+
+    // enviar email de bienvenida a los beneficiarios
+    if(resultado.beneficiarios.length > 0){
+      resultado.beneficiarios.map(async(b)=>{
+        await mail.send((message) => {
+          message
+          .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+          .to((b.usuario.email).trim())
+          .subject(`Registro exitoso`)
+          .html(emailBienvenidaBeneficiario({
+            nombreBeneficiario: `${b.usuario.nombre} ${b.usuario.segundo_nombre??''} ${b.usuario.apellido} ${b.usuario.segundo_apellido??''}`,
+            nombreTitular: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre??''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido??''}`,
+            emailTitular: resultado.titular.nuevoTitular.email,
+            numeroDocumento: b.usuario.numero_documento,
+            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+            telefonoPrevimed: '310 6236219'
+          }))
+          .attachData(Buffer.from(contratoPdf), {
+            filename: `Contrato-${b.usuario.numero_documento}.pdf`,
+            contentType: 'application/pdf',
+          })
+          .attach(terminosPath)
+        })
+      })
+    }
+
+    const usersAdmin = await user.getUsersAdmin();
+    const fp = new FormasPagosServices
+    const resFormaPago = await fp.findById(resultado.pago.forma_pago_id); // la forma de pago que se usó en el pago
+
+    // enviar email de verificacion de pago a los usuarios admin
+    if(usersAdmin.length > 0){
+      usersAdmin.map(async(a)=>{
+        await mail.send((message) => {
+          message
+          .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+          .to((a.email).trim())
+          .subject(`Verificación de pago`)
+          .html(emailVerificarPagoAdmin({
+            monto: resultado.pago.monto,
+            nombreAdmin: a.nombre,
+            nombreTitular: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre??''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido??''}`,
+            formaPago: resFormaPago.tipo_pago,
+            fechaCobro: resultado.pago.fecha_pago,
+            fechaInicioPago: resultado.pago.fecha_inicio,
+            fechaFinPago: resultado.pago.fecha_fin,
+            numeroMembresia: resultado.contrato.numero_contrato,
+            fechaInicioMembresia: resultado.contrato.fecha_inicio,
+            fechaFinMembresia: resultado.contrato.fecha_fin,
+            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+            telefonoPrevimed: '310 6236219'
+          }))
+        })
+      })
+    } 
 
     return response.status(201).json({
       message: 'Registro exitoso',

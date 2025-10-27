@@ -9,4 +9,5 @@ router.group(() => {
   router.post('/register', controller.register.bind(controller))
   router.put('/update/:id', controller.update.bind(controller))
   router.delete('/delete/:id', controller.delete.bind(controller))
+  router.get('/user/:id', controller.getByUserId.bind(controller))
 }).prefix('/membresiasxpacientes')
