@@ -104,4 +104,20 @@ export default class RegistrosPagoController {
       })
     }
   }
+
+  async get_pagos_by_membresia({params, response}: HttpContext){
+    const {id} = params
+    try {
+      const pagos = await this.service.get_pagos_by_membresia(id);
+      return response.status(200).send({
+        data: pagos,
+        message: 'Pagos obtenidos exitosamente'
+      })
+    } catch (error) {
+     return response.status(500).json({
+      error: error.message,
+      message: 'Ha ocurrido un error al obtener los pagos'
+     }) 
+    }
+  }
 }
