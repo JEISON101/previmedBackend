@@ -6,6 +6,7 @@ import { DataUsuario } from '../interfaces/usuarios.js'
 import Membresia from '#models/membresia'
 import MembresiaXPaciente from '#models/membresia_x_paciente'
 import RegistrosPago from '#models/registros_pago'
+import XLSX from 'xlsx'
 
 export default class PacientesServices {
   /**
@@ -223,6 +224,89 @@ export default class PacientesServices {
       return pacientes
     } catch (error) {
       return 'Error al obtener los pacientes'
+    }
+  }
+
+async exportExcel(filtro: string) {
+    try {
+      // Consultar pacientes con su última membresía
+      const pacientes = await Paciente
+        .query()
+        .preload('usuario', (qu) => {
+          qu.preload('eps')
+        })
+        .preload('membresiaPaciente', (qmp) => {
+          qmp.preload('membresia', (qm) => qm.preload('plan'))
+            .orderBy('id_membresia_x_paciente', 'desc')
+        })
+
+      // Filtrar por estado
+      let filtrados = pacientes
+      if (filtro === 'activa') {
+        filtrados = pacientes.filter(p => 
+          p.membresiaPaciente.length > 0 && 
+          p.membresiaPaciente[0].membresia.estado === true
+        )
+      }
+      if (filtro === 'inactiva') {
+        filtrados = pacientes.filter(p => 
+          p.membresiaPaciente.length > 0 && 
+          p.membresiaPaciente[0].membresia.estado === false
+        )
+      }
+
+      const cambiarFecha = (fecha: any) => {
+        if (!fecha) return '';
+        const d = new Date(fecha);
+        return isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-CO');
+      };
+ 
+      // Convertir a objetos planos
+      const datosExcel = filtrados.map(p => {
+        const ultimaMembresia = p.membresiaPaciente[0]?.membresia || null
+        return {
+          'Nombre': p.usuario?.nombre || '',
+          'Segundo Nombre': p.usuario?.segundo_nombre || '',
+          'Apellido': p.usuario?.apellido || '',
+          'Segundo Apellido': p.usuario?.segundo_apellido || '',
+          'Número de Documento': p.usuario?.numero_documento || '',
+          'Tipo de Documento': p.usuario?.tipo_documento || '',
+          'Correo Electrónico': p.usuario?.email || '',
+          'Dirección': p.usuario?.direccion || '',
+          'Fecha de Nacimiento': cambiarFecha(p.usuario?.fecha_nacimiento) || '',
+          'Estado Civil': p.usuario?.estado_civil || '',
+          'Número de Hijos': p.usuario?.numero_hijos || '',
+          'Estrato': p.usuario?.estrato || '',
+          'Género': p.usuario?.genero || '',
+          'EPS': p.usuario?.eps?.nombre_eps || '',
+          'Habilitado': p.usuario?.habilitar ? 'Sí' : 'No',
+          'Uso del Servicio': p.beneficiario? 'SI' : 'NO',
+          'Ocupación': p.ocupacion || '',
+          'Cargo': p.paciente_id != null? 'BENEFICIARIO' : 'TITULAR',
+          'Numero de Contrato': ultimaMembresia?.numero_contrato || '',
+          'Contrato Inicio': cambiarFecha(ultimaMembresia?.fecha_inicio) || '',
+          'Contrato Fin': cambiarFecha(ultimaMembresia?.fecha_fin) || '',
+          'Forma de Pago del Contrato': ultimaMembresia?.forma_pago || '',
+          'Plan': ultimaMembresia?.plan?.tipo_plan || '',
+          'Estado': ultimaMembresia?.estado ? 'Activo' : 'Inactivo',
+        }
+      })
+
+      // Crear workbook y convertir a CSV
+      const workbook = XLSX.utils.book_new()
+      const hoja = XLSX.utils.json_to_sheet(datosExcel)
+      XLSX.utils.book_append_sheet(workbook, hoja, 'Pacientes')
+
+      // Exportar como CSV 
+      const csv = XLSX.utils.sheet_to_csv(hoja)
+      
+      // Agregar BOM para que Excel reconozca UTF-8 correctamente
+      const buffer = Buffer.from('\uFEFF' + csv, 'utf-8')
+      return buffer
+      
+    } catch (error) {
+      console.error('Error completo:', error)
+      throw error
     }
   }
 }

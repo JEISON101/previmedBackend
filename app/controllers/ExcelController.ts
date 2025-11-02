@@ -247,4 +247,24 @@ export default class ExcelController {
       });
     }
   }
+
+async exportExcel({ params, response }: HttpContext) {
+  const { filtro } = params
+  const service = new PacientesServices()
+  
+  try {
+    const buffer = await service.exportExcel(filtro)
+
+    response.header('Content-Type', 'text/csv; charset=utf-8')
+    response.header('Content-Disposition', `attachment; filename="pacientes_${filtro}_${Date.now()}.csv"`)
+    
+    return response.send(buffer)
+    
+  } catch (error) {
+    return response.status(500).send({
+      message: "Error al exportar los pacientes", 
+      error: error.message
+    })
+  }
+}
 }
