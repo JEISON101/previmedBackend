@@ -1,7 +1,9 @@
+import ExcelController from '#controllers/ExcelController'
 import PacientesController from '#controllers/PacientesController'
 import router from '@adonisjs/core/services/router'
 
 const paciente = new PacientesController()
+const excel = new ExcelController()
 
 //  crear paciente
 router.post('/pacientes', paciente.create)
@@ -36,3 +38,7 @@ router.post('/paciente/crear-titular', paciente.registroCompletoTitular)
 
 //para obtener el titular y beneficiario con el id de usuario del context
 router.get('/usuarios/pacientes/:id', paciente.getUsuariosId)
+router.post('/import/pacientes/excel', excel.importExcel)
+// para exportar los pacientes en un excel, recibe parametro para filtrar: activa, innactiva o todas
+// estos estados son de la membresia
+router.get('/export/pacientes/excel/:filtro', excel.exportExcel)
