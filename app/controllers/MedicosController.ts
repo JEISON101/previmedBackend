@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import vine from '@vinejs/vine'
 import MedicoService from '#services/MedicosServices'
+import UsuarioServices from '../services/UsuariosServices.js'
 
 @inject()
 export default class MedicosController {
@@ -261,4 +262,65 @@ export default class MedicosController {
     }
   }
 
+
+  // POST /medicos/usuario
+  async crearUsuarioMedico({ request, response }: HttpContext) {
+    try {
+      const validator = vine.compile(
+        vine.object({
+          nombre: vine.string().trim().optional(),
+          segundo_nombre: vine.string().trim().optional(),
+          apellido: vine.string().trim().optional(),
+          segundo_apellido: vine.string().trim().optional(),
+          email: vine.string().trim().email().optional(),
+          password: vine.string().minLength(8),
+          numero_documento: vine.string().trim().minLength(1),
+          direccion: vine.string().trim().optional(),
+          habilitar: vine.boolean().optional(),
+          autorizacion_datos: vine.boolean().optional(),
+          genero: vine.string().optional(),
+          estado_civil: vine.string().optional(),
+          tipo_documento: vine.string().optional(),
+          eps_id: vine.number().optional(),
+          estrato: vine.string().optional(),
+          numero_hijos: vine.string().optional(),
+          fecha_nacimiento: vine.string().optional(),
+        })
+      )
+
+      const data = await request.validateUsing(validator)
+
+      const usuarioSvc = new UsuarioServices()
+      const existente = await usuarioSvc.doc(data.numero_documento)
+      if (existente) {
+        return response.status(409).json({ msg: 'Ya existe un usuario con este número de documento' })
+      }
+
+      const MEDICO_ROLE_ID = 2
+      const toCreate = {
+        ...data,
+        rol_id: MEDICO_ROLE_ID,
+        habilitar: data.habilitar ?? true,
+        autorizacion_datos: data.autorizacion_datos ?? true,
+      }
+
+      const usuario = await usuarioSvc.create(toCreate)
+
+      return response.status(200).json({
+        msg: 'Médico creado en usuarios',
+        data: {
+          id_usuario: usuario.id_usuario,
+          nombre: usuario.nombre,
+          apellido: usuario.apellido,
+          numero_documento: usuario.numero_documento,
+          rol_id: usuario.rol_id,
+        },
+      })
+    } catch (error: any) {
+      if (error.code === 'E_VALIDATION_ERROR') {
+        return response.badRequest({ msg: 'Datos inválidos', errors: error.messages })
+      }
+      return response.status(500).json({ msg: 'Error interno.', error: error.message })
+    }
+  } 
 }

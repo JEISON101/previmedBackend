@@ -4,14 +4,15 @@ const MedicosController = () => import('#controllers/MedicosController')
 
 // Rutas para médicos
 router.group(() => {
-
-  //Obtener médico por usuario_id
+  // Obtener médico por usuario_id
   router.get('/usuario/:usuario_id', [MedicosController, 'listarPorUsuario'])
-
 
   // médicos disponibles - debe ir antes de :id
   router.get('/disponibles', [MedicosController, 'disponibles'])
   
+  // Crear USUARIO con rol MÉDICO 
+  router.post('/usuarioM', [MedicosController, 'crearUsuarioMedico'])  // ← FIX AQUÍ
+
   // CRUD básico
   router.get('/', [MedicosController, 'readAll'])
   router.post('/', [MedicosController, 'create'])
@@ -19,7 +20,7 @@ router.group(() => {
   router.put('/:id', [MedicosController, 'update'])
   router.delete('/:id', [MedicosController, 'delete'])
   
-  // Ruta especial para cambiar disponibilidad (me la dio chat)
+  // Ruta especial para cambiar disponibilidad
   router.patch('/:id/disponibilidad', [MedicosController, 'cambiarDisponibilidad'])
 }).prefix('medicos')
 
