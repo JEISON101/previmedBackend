@@ -83,6 +83,42 @@ export default class MembresiasController {
       return response.status(404).send({ error: error.message })
     }
   }
+
+  //buscar si el usuario tiene mebrecia activa por el documento
+public async buscarActiva({ params, response }: HttpContext) {
+    const { numeroDocumento } = params
+    const servicio = new MembresiasService()
+
+    try {
+      const resultado = await servicio.buscarActivaPorDocumento(numeroDocumento)
+
+      if (!resultado.ok) {
+        return response.notFound(resultado)
+      }
+
+      return response.ok(resultado)
+    } catch (error) {
+      console.error('Error al buscar membresía activa:', error)
+      return response.status(500).send({
+        ok: false,
+        mensaje: 'Error no se encontro la membrecia.',
+      })
+    }
+  }
+
+  async getPdfContrato({ request, response }: HttpContext) {
+    const data = request.body();
+    try {
+      const pdf = await generarContratoPDF(data);
+      response.header('Content-Type', 'application/pdf');
+      response.header('Content-Disposition', 'attachment; filename="contrato.pdf"');
+      return response.send(pdf);
+    } catch (error) {
+      return response.status(500).send({
+        message: 'Error al generar el contrato en pdf.',
+      });
+    }
+  }
 }
 
 export async function generarContratoPDF(data: any) {
@@ -105,4 +141,3 @@ export async function generarContratoPDF(data: any) {
   await browser.close()
   return pdf
 }
-
