@@ -296,7 +296,7 @@ export default class MedicosController {
         return response.status(409).json({ msg: 'Ya existe un usuario con este número de documento' })
       }
 
-      const MEDICO_ROLE_ID = 2
+      const MEDICO_ROLE_ID = 3
       const toCreate = {
         ...data,
         rol_id: MEDICO_ROLE_ID,
