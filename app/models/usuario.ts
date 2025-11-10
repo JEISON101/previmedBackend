@@ -7,6 +7,7 @@ import Role from './role.js'
 import Medico from './medico.js'
 import Paciente from './paciente.js'
 import Telefono from './telefono.js'
+import RegistrosPago from './registros_pago.js'
 
 export default class Usuario extends BaseModel {
   @column({ isPrimary: true })
@@ -51,4 +52,7 @@ export default class Usuario extends BaseModel {
 
   @hasMany(() => Telefono)
   declare telefonos: HasMany<typeof Telefono>
+
+  @hasMany(() => RegistrosPago)
+  declare pagos: HasMany<typeof RegistrosPago>
 }
