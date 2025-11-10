@@ -56,6 +56,9 @@ export default class RegistrosPagoController {
         'fecha_fin',
         'membresia_id',
         'forma_pago_id',
+        'cobrador_id',
+        'estado',
+        'numero_recibo',
       ]),
       foto: urlFoto
     }
@@ -79,6 +82,9 @@ export default class RegistrosPagoController {
           'fecha_fin',
           'membresia_id',
           'forma_pago_id',
+          'cobrador_id',
+          'estado',
+          'numero_recibo',
         ]),
         ...(urlFoto && { foto: urlFoto }) // solo agrega foto si existe
       }

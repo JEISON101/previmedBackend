@@ -17,6 +17,7 @@ export default class RegistrosPago extends BaseModel {
   @column() declare forma_pago_id: number
   @column() declare cobrador_id: string
   @column() declare numero_recibo: string
+  @column() declare estado: string
 
   @belongsTo(()=> Membresia, {foreignKey:'membresia_id'})
   declare membresia: BelongsTo<typeof Membresia>
