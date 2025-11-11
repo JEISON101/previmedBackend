@@ -1,4 +1,5 @@
 import Medico from '#models/medico'
+import db from '@adonisjs/lucid/services/db' // ✅ NUEVO: para consultar la tabla `visitas`
 import type {
   CreateMedicoData,
   UpdateMedicoData,
@@ -116,6 +117,42 @@ export default class MedicoService implements MedicoServiceInterface {
     }
   }
 
+  // =========================
+  // ✅ NUEVOS MÉTODOS
+  // =========================
+
+  /** Total de visitas para un médico específico (tabla `visitas`) */
+  async totalVisitasPorMedico(medicoId: number): Promise<number> {
+    const [row] = await db.from('visitas').where('medico_id', medicoId).count('* as total')
+    return Number((row as any)?.total || 0)
+  }
+
+  /** Visitas agrupadas por médico → [{ medico_id, label, total }] */
+  async visitasAgrupadasPorMedico(): Promise<Array<{ medico_id: number; label: string; total: number }>> {
+    const rows = await db
+      .from('visitas')
+      .select('medico_id')
+      .count('* as total')
+      .groupBy('medico_id')
+
+    if (rows.length === 0) return []
+
+    const ids = rows.map((r: any) => r.medico_id)
+    const medicos = await db
+      .from('medicos')
+      .join('usuarios', 'usuarios.id_usuario', 'medicos.usuario_id')
+      .whereIn('medicos.id_medico', ids)
+      .select('medicos.id_medico', 'usuarios.nombre', 'usuarios.apellido')
+
+    const mapNombre = new Map<number, string>()
+    medicos.forEach((m) => mapNombre.set(m.id_medico, `${m.nombre} ${m.apellido}`))
+
+    return rows.map((r: any) => ({
+      medico_id: r.medico_id,
+      label: mapNombre.get(r.medico_id) || `Médico ${r.medico_id}`,
+      total: Number(r.total),
+    }))
+  }
 
   private transformarAResponse(medico: Medico): MedicoResponse {
     return {

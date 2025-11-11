@@ -262,7 +262,6 @@ export default class MedicosController {
     }
   }
 
-
   // POST /medicos/usuario
   async crearUsuarioMedico({ request, response }: HttpContext) {
     try {
@@ -323,4 +322,36 @@ export default class MedicosController {
       return response.status(500).json({ msg: 'Error interno.', error: error.message })
     }
   } 
+
+
+  // NUEVOS ENDPOINTS
+  
+
+  //GET /medicos/:id/visitas/total 
+  async totalVisitasPorMedico({ params, response }: HttpContext) {
+    try {
+      const medicoId = Number(params.id)
+      const total = await this.medicoService.totalVisitasPorMedico(medicoId)
+      return response.ok({ medico_id: medicoId, total })
+    } catch (error) {
+      return response.internalServerError({
+        message: 'Error al calcular total de visitas del médico',
+        error: (error as any).message,
+      })
+    }
+  }
+
+  //GET /medicos/visitas/pormedico
+
+  async visitasAgrupadasPorMedico({ response }: HttpContext) {
+    try {
+      const data = await this.medicoService.visitasAgrupadasPorMedico()
+      return response.ok({ data })
+    } catch (error) {
+      return response.internalServerError({
+        message: 'Error al agrupar visitas por médico',
+        error: (error as any).message,
+      })
+    }
+  }
 }
