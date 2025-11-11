@@ -43,16 +43,23 @@ export default class RegistrosPagoController {
   async create_registro_pago({ request, response }: HttpContext) {
     try {
       const foto = request.file('foto')
-      const urlFoto = foto ? await this.subirImagen(foto) : undefined
-      const data = {
-        ...request.only([
-          'monto', 'fecha_inicio', 'fecha_pago', 'fecha_fin', 'membresia_id', 'forma_pago_id',
-        ]),
-        foto: urlFoto,
-      }
-      const res = await this.service.create_pago(data)
-      const pago = await this.service.get_pago_id(res.id_registro)
-      return response.status(201).ok({ message: 'Registro de pago creado exitosamente', data: pago })
+      const urlFoto = foto ? await this.subirImagen(foto) : undefined;
+      const data = {...request.only([
+        'monto',
+        'fecha_inicio',
+        'fecha_pago',
+        'fecha_fin',
+        'membresia_id',
+        'forma_pago_id',
+        'cobrador_id',
+        'estado',
+        'numero_recibo',
+      ]),
+      foto: urlFoto
+    }
+      const res = await this.service.create_pago(data);
+      const pago = await this.service.get_pago_id(res.id_registro);
+      return response.status(201).ok({ message: 'Registro de pago creado exitosamente', data:pago })
     } catch (error) {
       return response.status(500).send({ message: 'Error al crear el registro de pago', error: error.message })
     }
@@ -64,7 +71,15 @@ export default class RegistrosPagoController {
       const urlFoto = foto ? await this.subirImagen(foto) : undefined
       const data = {
         ...request.only([
-          'monto', 'fecha_inicio', 'fecha_pago', 'fecha_fin', 'membresia_id', 'forma_pago_id',
+          'monto',
+          'fecha_inicio',
+          'fecha_pago',
+          'fecha_fin',
+          'membresia_id',
+          'forma_pago_id',
+          'cobrador_id',
+          'estado',
+          'numero_recibo',
         ]),
         ...(urlFoto && { foto: urlFoto }),
       }

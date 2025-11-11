@@ -1,5 +1,6 @@
 import Membresia from '#models/membresia'
 import MembresiaXPaciente from '#models/membresia_x_paciente'
+import { DateTime } from 'luxon'
 
 export default class MembresiasService {
   // Listar todas las membresías con preload profundo
@@ -76,4 +77,64 @@ async crear(data: Partial<Membresia>, paciente_id?: number) {
     await membresia.delete()
     return 'Membresía eliminada correctamente'
   }
+
+async buscarActivaPorDocumento(numero_documento: string) {
+  const hoy = DateTime.now().toISODate() // solo fecha, sin hora
+
+  // consulta la membrecia para saber si esta actvia tambien con la fecha
+  const membresias = await Membresia.query()
+    .where('estado', true)
+    .whereRaw('DATE(fecha_inicio) <= ?', [hoy])
+    .whereRaw('DATE(fecha_fin) >= ?', [hoy])
+    .preload('membresiaPaciente', (mp) => {
+      mp.preload('paciente', (p) => {
+        p.preload('usuario')
+      })
+    })
+
+  // aqui filtro
+  const match = membresias.find((m) =>
+    m.membresiaPaciente.some(
+      (rel) =>
+        rel.paciente &&
+        rel.paciente.usuario &&
+        rel.paciente.usuario.numero_documento === numero_documento
+    )
+  )
+
+  if (!match) {
+    return {
+      ok: false,
+      mensaje: 'No hay membresía activa asociada a ese número de documento.',
+    }
+  }
+
+  const relacion = match.membresiaPaciente.find(
+    (rel) =>
+      rel.paciente &&
+      rel.paciente.usuario &&
+      rel.paciente.usuario.numero_documento === numero_documento
+  )!
+
+  const paciente = relacion.paciente
+  const usuario = paciente.usuario
+
+  return {
+    ok: true,
+    membresia: {
+      id_membresia: match.id_membresia,
+      numero_contrato: match.numero_contrato,
+      fecha_inicio: match.fecha_inicio,
+      fecha_fin: match.fecha_fin,
+      plan_id: match.plan_id,
+      estado: match.estado,
+    },
+    paciente: {
+      id_paciente: paciente.id_paciente,
+      nombre: `${usuario.nombre} ${usuario.apellido}`,
+      numero_documento: usuario.numero_documento,
+      usuario_id: usuario.id_usuario,
+    },
+  }
+}
 }

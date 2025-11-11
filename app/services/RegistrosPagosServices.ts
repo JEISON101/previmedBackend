@@ -6,7 +6,8 @@ export default class RegistrosPagoService {
   async get_all_pagos() {
     return await RegistrosPago.query()
       .select()
-      .preload('formaPago', (fpquery) => fpquery.select('tipo_pago'))
+      .preload('formaPago', (fpquery)=>fpquery.select('tipo_pago'))
+      .preload('cobrador')
       .preload('membresia', (membresiaQuery) => {
         membresiaQuery
           .select('numero_contrato')
@@ -32,7 +33,8 @@ export default class RegistrosPagoService {
   async get_pago_id(id: number) {
     return await RegistrosPago.query()
       .where('id_registro', id)
-      .preload('formaPago', (fpquery) => fpquery.select('tipo_pago'))
+      .preload('formaPago', (fpquery)=>fpquery.select('tipo_pago'))
+      .preload('cobrador')
       .preload('membresia', (membresiaQuery) => {
         membresiaQuery
           .select('numero_contrato')
