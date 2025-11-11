@@ -33,9 +33,10 @@ export default class RegistrosPagoController {
 
   async subirImagen(file: any) {
     const upload = await cloudinary.uploader.upload(file.tmpPath!, {
-      width: 1000,
-      height: 800,
-      crop: 'fill'
+      width: 1920,
+      height: 1920,
+      crop: 'limit',
+      quality: 90,
     })
     return upload.secure_url
   }
@@ -147,6 +148,39 @@ export default class RegistrosPagoController {
       return response.ok({ year, data })
     } catch (error) {
       return response.status(500).send({ message: 'Error al obtener los ingresos mensuales', error: (error as any).message })
+    }
+  }
+
+  
+  async getPagosAsigandosByUser({params, response}: HttpContext){
+    try {
+      const {id_usuario} = params;
+      const pagos = await this.service.getPagosAsiganadosByUser(id_usuario);
+      return response.status(200).send({message: 'Pagos asigandos cargados corractamente', data: pagos})
+    } catch (error) {
+      return response.status(500).send({message: 'Ocurrió un error al obtener los pagos',  error: error.message})
+    }
+  }
+
+  async setEstadoPago({params, response}: HttpContext){
+    try {
+      const {id_pago, estado} = params;
+      await this.service.setEstadoPago(estado, id_pago)
+      return response.status(200).send({message: 'Estado actualizado correctamente'})
+    } catch (error) {
+      return response.status(500).send({message: 'Error al cambiar el estado'});
+    }
+  }
+
+  async subirEvidencia({params, request, response}: HttpContext){
+    const foto = request.file('evidencia');
+    const {id_pago} = params
+    try {
+      const url = await this.subirImagen(foto); // se carga la foto al cloud y retorna la url
+      const data = await this.service.subirFoto(url, Number(id_pago)); // se actualiza la foto del pago
+      return response.status(200).send({message: 'Evidencia cargada correctamente', data: data})
+    } catch (error) {
+      return response.status(500).send({message: 'Error al cargar la evidencia', error: error.message})
     }
   }
 }

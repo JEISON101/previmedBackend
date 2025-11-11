@@ -131,4 +131,44 @@ export default class RegistrosPagoService {
       value: Number(r.value),
     }))
   }
+    
+  async getPagosAsiganadosByUser(id_usuario: string) {
+    const pagos = await RegistrosPago.query()
+      .where('cobrador_id', id_usuario)
+      .andWhere('estado', 'Asignado')
+      .preload('membresia', (qm) =>
+        qm.select(['numero_contrato'])
+          .preload('membresiaPaciente', (qmp) =>
+              qmp.preload('paciente', (qpu) =>
+                qpu.select(['direccion_cobro', 'usuario_id']).preload('usuario', (qu) =>
+                    qu.select([
+                      'id_usuario',
+                      'nombre',
+                      'segundo_nombre',
+                      'apellido',
+                      'segundo_apellido',
+                      'email',
+                      'direccion',
+                    ])
+                  )
+              )
+          )
+      );
+    return pagos;
+  }
+
+  async setEstadoPago(estado: string, id_pago: number){
+    const pago = await RegistrosPago.find(id_pago)
+    if(!pago) return null;
+    pago.estado = estado;
+    if(estado == 'Realizado') pago.fecha_pago = new Date()
+    return await pago.save();
+  }
+
+  async subirFoto(url: string, id_pago: number){
+    const pago = await RegistrosPago.find(id_pago)
+    if(!pago) return null
+    pago.foto = url;
+    return await pago.save();
+  }
 }
