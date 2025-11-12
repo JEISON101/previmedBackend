@@ -1,3 +1,5 @@
+import { DataUsuario } from "./usuarios.js";
+
 export interface GetRegitroPago{
     idRegistro:number;
     monto:number;
@@ -9,6 +11,10 @@ export interface GetRegitroPago{
     formaPagoId:number;
     membresia:object;
     formaPago:object;
+    cobrador_id: string;
+    cobrador: DataUsuario;
+    estado: string;
+    numero_recibo: string;
 }
 
 export interface PostRegistroPago{
@@ -19,4 +25,7 @@ export interface PostRegistroPago{
     fecha_pago: Date;
     membresia_id:number;
     forma_pago_id:number;
+    estado: string;
+    cobrador_id: string;
+    numero_recibo : string;
 }

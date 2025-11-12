@@ -10,6 +10,10 @@ router.group(() => {
   // médicos disponibles - debe ir antes de :id
   router.get('/disponibles', [MedicosController, 'disponibles'])
   
+  // TABLAS de visitas (nuevas)
+  router.get('/visitas/pormedico', [MedicosController, 'visitasAgrupadasPorMedico'])
+  router.get('/:id/visitas/total', [MedicosController, 'totalVisitasPorMedico'])
+
   // Crear USUARIO con rol MÉDICO 
   router.post('/usuarioM', [MedicosController, 'crearUsuarioMedico'])  // ← FIX AQUÍ
 
