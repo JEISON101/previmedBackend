@@ -22,9 +22,7 @@ export default class Usuario extends BaseModel {
   @column() declare direccion: string
   @column() declare numero_documento: string
 
-  // 👇 Usamos Luxon DateTime
-  @column.date()
-  declare fecha_nacimiento: DateTime
+  @column() declare fecha_nacimiento: Date
 
   // 👇 En la base de datos son character varying(2), así que mejor string
   @column() declare numero_hijos: string

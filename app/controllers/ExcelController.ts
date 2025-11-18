@@ -46,13 +46,26 @@ export default class ExcelController {
     }
 
     // Función para normalizar fechas
-    function normalizarFecha(valor: any): string | Date {
-      if (!valor) return "";
-      if (typeof valor === 'number') {
-        return convertirFecha(valor);
+    function normalizarFecha(valor: any): string | null {
+      if (!valor) return null;
+    
+      // Si viene como serial de Excel (número)
+      if (typeof valor === "number") {
+        const fecha = convertirFecha(valor);
+        return fecha.toISOString().slice(0, 10);
       }
-      return valor.toString().trim();
+    
+      // Si viene como string "25/11/1998"
+      let str = valor.toString().trim();
+      if (str.includes("/")) {
+        const [d, m, y] = str.split("/");
+        return `${y}-${m}-${d}`; // yyyy-mm-dd
+      }
+    
+      // Si viene como "1998-11-25"
+      return str;
     }
+
 
     // Función para obtener valores string seguros
     function obtenerString(valor: any, porDefecto: string = ""): string {
