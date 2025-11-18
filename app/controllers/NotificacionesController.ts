@@ -26,6 +26,15 @@ export default class NotificacionesController{
             return response.status(500).json({message:'Error interno.'})
         }
     }
+    async notifiAdminVisitas({response}:HttpContext){
+        try{
+            const notificaciones = await newNotificacion.notifiAdminVisitas()
+            
+            return response.status(200).json({message:'Exito', data:notificaciones})
+        }catch(e){
+            return response.status(500).json({message:'Error interno.'})
+        }
+    }
     async notifiVista({params, response}:HttpContext){
         try{
             const {idNot} = params
