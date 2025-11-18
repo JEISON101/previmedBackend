@@ -1,5 +1,4 @@
 import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
 import type { TipoDocumento, TipoEstadoCivil, TipoGenero } from '../interfaces/usuarios.js'
 import Ep from './ep.js'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
@@ -22,9 +21,7 @@ export default class Usuario extends BaseModel {
   @column() declare direccion: string
   @column() declare numero_documento: string
 
-  // 👇 Usamos Luxon DateTime
-  @column.date()
-  declare fecha_nacimiento: DateTime
+  @column() declare fecha_nacimiento: Date
 
   // 👇 En la base de datos son character varying(2), así que mejor string
   @column() declare numero_hijos: string

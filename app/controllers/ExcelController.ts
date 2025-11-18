@@ -46,13 +46,26 @@ export default class ExcelController {
     }
 
     // Función para normalizar fechas
-    function normalizarFecha(valor: any): string | Date {
-      if (!valor) return "";
-      if (typeof valor === 'number') {
-        return convertirFecha(valor);
+    function normalizarFecha(valor: any): string | null {
+      if (!valor) return null;
+    
+      // Si viene como serial de Excel (número)
+      if (typeof valor === "number") {
+        const fecha = convertirFecha(valor);
+        return fecha.toISOString().slice(0, 10);
       }
-      return valor.toString().trim();
+    
+      // Si viene como string "25/11/1998"
+      let str = valor.toString().trim();
+      if (str.includes("/")) {
+        const [d, m, y] = str.split("/");
+        return `${y}-${m}-${d}`; // yyyy-mm-dd
+      }
+    
+      // Si viene como "1998-11-25"
+      return str;
     }
+
 
     // Función para obtener valores string seguros
     function obtenerString(valor: any, porDefecto: string = ""): string {
@@ -195,13 +208,12 @@ export default class ExcelController {
             motivo: 'Registro exitoso'
           });
 
-        } catch (rowError: any) {
+        } catch (error) {
           errors++;
-          console.error('Error procesando fila:', rowError);
           processed.push({
             ...fila,
             status: 'Error',
-            motivo: rowError.message || rowError.toString() || 'Error al procesar la fila'
+            motivo: error.message || 'Error al procesar la fila'
           });
         }
       }
@@ -212,7 +224,7 @@ export default class ExcelController {
           fs.unlinkSync(file.tmpPath);
         }
       } catch (cleanupError) {
-        console.error('Error al limpiar archivo temporal:', cleanupError);
+        throw cleanupError
       }
 
       return response.ok({
@@ -236,7 +248,7 @@ export default class ExcelController {
           fs.unlinkSync(file.tmpPath);
         }
       } catch (cleanupError) {
-        console.error('Error al limpiar archivo temporal:', cleanupError);
+        throw cleanupError
       }
       
       return response.internalServerError({
