@@ -1,5 +1,4 @@
 import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
-import { DateTime } from 'luxon'
 import type { TipoDocumento, TipoEstadoCivil, TipoGenero } from '../interfaces/usuarios.js'
 import Ep from './ep.js'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
