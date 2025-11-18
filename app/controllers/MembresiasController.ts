@@ -2,6 +2,7 @@ import { HttpContext } from '@adonisjs/core/http'
 import MembresiasService from '#services/MembresiasServices'
 import puppeteer from 'puppeteer'
 import { plantillaContrato } from '../templates/plantillaContrato.js'
+import PacientesServices from '#services/PacientesServices'
 
 export default class MembresiasController {
   private service = new MembresiasService()
@@ -98,21 +99,36 @@ public async buscarActiva({ params, response }: HttpContext) {
 
       return response.ok(resultado)
     } catch (error) {
-      console.error('Error al buscar membresía activa:', error)
       return response.status(500).send({
         ok: false,
         mensaje: 'Error no se encontro la membrecia.',
+        error: error.message
       })
     }
   }
 
-  async getPdfContrato({ request, response }: HttpContext) {
-    const data = request.body();
+  async getPdfContrato({ params, response }: HttpContext) {
+    const {idUsuario} = params;
+    const service = new PacientesServices
     try {
-      const pdf = await generarContratoPDF(data);
-      response.header('Content-Type', 'application/pdf');
-      response.header('Content-Disposition', 'attachment; filename="contrato.pdf"');
-      return response.send(pdf);
+      const pacientes = await service.getUsuariosId(idUsuario);
+      if (Array.isArray(pacientes)) {
+        const beneficiarios = pacientes.filter((p:any) => p.paciente_id && p.paciente_id != null);
+        const titular = pacientes.find((p:any) => !p.pacienteId || p.pacienteId == null);
+        const data = {
+          direccionPrevimed: '',
+          telefonoPrevimed: '',
+          beneficiarios: beneficiarios,
+          titularNombre: `${titular?.usuario.nombre??''} ${titular?.usuario.segundo_nombre??''} ${titular?.usuario.apellido??''} ${titular?.usuario.segundo_apellido??''}`,
+          titularEmail: titular?.usuario.email??'',
+          titularDocumento: titular?.usuario.numero_documento,
+          membresia: '11241'
+        }
+        const pdf = await generarContratoPDF(data);
+        response.header('Content-Type', 'application/pdf');
+        response.header('Content-Disposition', 'attachment; filename="contrato.pdf"');
+        return response.send(pdf);
+      }
     } catch (error) {
       return response.status(500).send({
         message: 'Error al generar el contrato en pdf.',

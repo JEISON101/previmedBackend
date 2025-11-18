@@ -127,66 +127,10 @@ export default class PacientesController {
     }
   }
 
-  async updateById({ params, request, response }: HttpContext) {
+  async updateById({ request, response }: HttpContext) {
     try {
-      const { id } = params
-      const {
-        nombre,
-        segundo_nombre,
-        apellido,
-        segundo_apellido,
-        email,
-        password,
-        direccion,
-        numero_documento,
-        fecha_nacimiento,
-        numero_hijos,
-        estrato,
-        autorizacion_datos,
-        habilitar,
-        genero,
-        estado_civil,
-        tipo_documento,
-        eps_id,
-        rol_id,
-        direccion_cobro,
-        ocupacion,
-        activo,
-        beneficiario,
-        paciente_id,
-      } = request.body()
-
-      const hash = await bcrypt.hash(password, 10)
-      const userid = await paciente.update(
-        id,
-        {
-          direccion_cobro,
-          ocupacion,
-          activo,
-          beneficiario,
-          paciente_id,
-        },
-        {
-          nombre,
-          segundo_nombre,
-          apellido,
-          segundo_apellido,
-          email,
-          password: hash,
-          direccion,
-          numero_documento,
-          fecha_nacimiento,
-          numero_hijos,
-          estrato,
-          autorizacion_datos,
-          habilitar,
-          genero,
-          estado_civil,
-          tipo_documento,
-          eps_id,
-          rol_id,
-        }
-      )
+      const data = request.body()
+      const userid = await paciente.update(data.paciente.id_paciente, data.paciente, data.paciente.usuario);
       return response.status(200).json({ message: 'Actualizado', data: userid })
     } catch (e) {
       return response.status(500).json({ message: 'Error', error: e.message })
