@@ -7,6 +7,17 @@ export default class NotificacionesServices {
     return await Notificacione.create(data)
   }
   // Notificación para el medico
+  async notifiAdminVisitas() {
+    return await db.from('notificaciones as n').whereNull('n.cobrador_id')
+    .join('usuarios as u', 'u.id_usuario', 'n.paciente_id')
+    .select(
+      'n.*',
+      'u.nombre as nombrePaciente',
+      'u.apellido as apellidoPaciente'
+    )
+    .orderBy('n.created_at', 'desc')
+  }
+  // Notificación para el medico
   async notifiMedi(id: number) {
     return await db.from('notificaciones as n').where('n.medico_id', id)
     .where('n.estado', false)
@@ -18,9 +29,10 @@ export default class NotificacionesServices {
     )
     .orderBy('n.created_at', 'desc')
   }
+
   async update(id:any){
     const notifiacion = await Notificacione.findOrFail(id)
-    notifiacion.estado = true;
+    notifiacion.estado = !notifiacion.estado;
     await notifiacion.save()
     return notifiacion
   }

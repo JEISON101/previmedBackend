@@ -5,4 +5,5 @@ const notificaciones = new NotificacionesController();
 
 router.post('/notificaciones/create', notificaciones.create)
 router.get('/notificaciones/medico/:idMedico', notificaciones.notifiMedi)
+router.get('/notificaciones/admin/visitas', notificaciones.notifiAdminVisitas)
 router.patch('/notificacion/:idNot', notificaciones.notifiVista)
