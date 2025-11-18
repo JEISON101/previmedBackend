@@ -14,8 +14,8 @@ app.ready(()=>{
         socket.on('disconnect',()=>{
             console.log('Usuario desconectado')
         })
-        socket.on('solicitud visita',()=>{
-            io.emit('solicitud visita', true)
+        socket.on('solicitudVisita',(data)=>{
+            io.emit('solicitudVisita', data)
         })
     })
 })
