@@ -8,3 +8,4 @@ Route.get('/membresias/activa/:numeroDocumento',[MembresiasController, 'buscarAc
 Route.get('/membresias/:id', [MembresiasController, 'obtenerPorId'])
 Route.put('/membresias/:id', [MembresiasController, 'actualizar'])
 Route.delete('/membresias/:id', [MembresiasController, 'eliminar'])
+Route.post('/membresias/pdf/:idUsuario', [MembresiasController, 'getPdfContrato'])
