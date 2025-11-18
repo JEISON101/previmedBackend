@@ -195,13 +195,12 @@ export default class ExcelController {
             motivo: 'Registro exitoso'
           });
 
-        } catch (rowError: any) {
+        } catch (error) {
           errors++;
-          console.error('Error procesando fila:', rowError);
           processed.push({
             ...fila,
             status: 'Error',
-            motivo: rowError.message || rowError.toString() || 'Error al procesar la fila'
+            motivo: error.message || 'Error al procesar la fila'
           });
         }
       }
@@ -212,7 +211,7 @@ export default class ExcelController {
           fs.unlinkSync(file.tmpPath);
         }
       } catch (cleanupError) {
-        console.error('Error al limpiar archivo temporal:', cleanupError);
+        throw cleanupError
       }
 
       return response.ok({
@@ -236,7 +235,7 @@ export default class ExcelController {
           fs.unlinkSync(file.tmpPath);
         }
       } catch (cleanupError) {
-        console.error('Error al limpiar archivo temporal:', cleanupError);
+        throw cleanupError
       }
       
       return response.internalServerError({
