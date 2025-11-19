@@ -44,4 +44,14 @@ export default class NotificacionesController{
             return response.status(500).json({message:'Error interno.'})
         }
     }
+    async deleteNotifi({params, response}:HttpContext){
+        try{
+            const {id} = params
+            await newNotificacion.delete(id);
+
+            return response.status(200).json({message:'Exito'})
+        }catch(e){
+            return response.status(500).json({message:'Error interno.'})
+        }
+    }
 }
