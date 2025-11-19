@@ -11,7 +11,11 @@ export default class NotificacionesServices {
     return await db.from('notificaciones as n').whereNull('n.cobrador_id')
     .join('usuarios as u', 'u.id_usuario', 'n.paciente_id')
     .select(
-      'n.*',
+      'n.id',
+      'n.paciente_id',
+      'n.medico_id',
+      'n.estado',
+      'n.created_at',
       'u.nombre as nombrePaciente',
       'u.apellido as apellidoPaciente'
     )
@@ -35,5 +39,10 @@ export default class NotificacionesServices {
     notifiacion.estado = !notifiacion.estado;
     await notifiacion.save()
     return notifiacion
+  }
+
+  async delete(id:number){
+    const notificacion = await Notificacione.findOrFail(id);
+    return notificacion.delete()
   }
 }
