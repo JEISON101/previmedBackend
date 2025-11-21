@@ -7,7 +7,7 @@ router.group(() => {
     router.get('/read', [FormasPagosController, 'read'])
     router.get('/read/:id', [FormasPagosController, 'readId'])
     router.post('/register',[FormasPagosController, 'register'])
-    router.put('/update', [FormasPagosController, 'update'])
+    router.put('/update/:id', [FormasPagosController, 'update'])
     router.delete('/delete/:id', [FormasPagosController, 'delete'])
     
 }).prefix('/formas_pago')
