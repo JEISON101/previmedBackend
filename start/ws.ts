@@ -27,6 +27,9 @@ app.ready(() => {
         io.to(target).emit('visitaConfirmada', data)
       }
     })
+    socket.on('registroPago', (data) => {
+      io.emit('registroPago', data)
+    })
 
     socket.on('disconnect', () => {
       for (const userId in users) {

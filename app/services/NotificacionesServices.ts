@@ -21,6 +21,21 @@ export default class NotificacionesServices {
     )
     .orderBy('n.created_at', 'desc')
   }
+  // Notificación para el pago
+  async notifiAdminPago() {
+    return await db.from('notificaciones as n').whereNull('n.medico_id')
+    .join('usuarios as u', 'u.id_usuario', 'n.cobrador_id')
+    .select(
+      'n.id',
+      'n.cobrador_id',
+      'n.registro_pago_id',
+      'n.estado',
+      'n.created_at',
+      'u.nombre as nombre_asesor',
+      'u.apellido as apellido_asesor'
+    )
+    .orderBy('n.created_at', 'desc')
+  }
   // Notificación para el medico
   async notifiMedi(id: number) {
     return await db.from('notificaciones as n').where('n.medico_id', id)
