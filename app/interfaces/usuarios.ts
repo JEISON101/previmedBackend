@@ -1,4 +1,3 @@
-import { DateTime } from "luxon";
 
 export type TipoGenero = 'Masculino' | 'Femenino' | 'otro'
 export type TipoEstadoCivil = 'Soltero'| 'Casado'| 'Viudo'| 'Divorciado'|'Unión marital'
@@ -15,7 +14,7 @@ export interface DataUsuario{
     password: string;
     direccion: string;
     numero_documento: string;
-    fecha_nacimiento: DateTime<boolean>;
+    fecha_nacimiento: Date;
     numero_hijos: string;
     estrato: string;
     autorizacion_datos: boolean;

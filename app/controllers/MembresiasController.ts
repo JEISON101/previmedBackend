@@ -1,6 +1,6 @@
 import { HttpContext } from '@adonisjs/core/http'
 import MembresiasService from '#services/MembresiasServices'
-import puppeteer from 'puppeteer'
+import * as pdf from "html-pdf-node"
 import { plantillaContrato } from '../templates/plantillaContrato.js'
 import PacientesServices from '#services/PacientesServices'
 
@@ -137,23 +137,21 @@ public async buscarActiva({ params, response }: HttpContext) {
   }
 }
 
-export async function generarContratoPDF(data: any) {
+export async function generarContratoPDF(data: any): Promise<any> {
   const htmlFinal = plantillaContrato(data)
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  })
+  const file = { content: htmlFinal }
 
-  const page = await browser.newPage()
-  await page.setContent(htmlFinal, { waitUntil: 'networkidle0' })
+  const pdfBuffer = await pdf.generatePdf(file, {
+    format: "A4",
+    margin: {
+      top: "25mm",
+      bottom: "25mm",
+      left: "20mm",
+      right: "20mm"
+    },
+    printBackground: true
+  });
 
-  const pdf = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: { top: '25mm', bottom: '25mm', left: '20mm', right: '20mm' },
-  })
-
-  await browser.close()
-  return pdf
+  return pdfBuffer;
 }
