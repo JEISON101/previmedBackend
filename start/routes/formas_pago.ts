@@ -9,5 +9,6 @@ router.group(() => {
     router.post('/register',[FormasPagosController, 'register'])
     router.put('/update/:id', [FormasPagosController, 'update'])
     router.delete('/delete/:id', [FormasPagosController, 'delete'])
+    router.patch('/change/:id/estado',[FormasPagosController, 'cambiarEstado'])
     
 }).prefix('/formas_pago')
