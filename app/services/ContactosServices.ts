@@ -8,7 +8,7 @@ export default class ContactosServices {
   async read() {
     return await Contacto.all()
   }
-  async update(data: DataContactos, id: any) {
+  async update(data: any, id: any) {
     const row = await Contacto.findOrFail(id)
     row.merge(data)
     return await row.save()

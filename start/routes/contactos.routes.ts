@@ -6,4 +6,4 @@ const contactos = new ContactosController();
 
 router.post('/contactos/create', contactos.create);
 router.get('/contactos/read', contactos.read);
-router.put('/contactos/update/:id', contactos.update);
+router.put('/contactos/update/fields/:id', contactos.update);
