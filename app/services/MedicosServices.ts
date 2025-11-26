@@ -127,10 +127,11 @@ export default class MedicoService implements MedicoServiceInterface {
     return Number((row as any)?.total || 0)
   }
 
-  /** Visitas agrupadas por médico → [{ medico_id, label, total }] */
+  /** Visitas agrupadas por médico → [{ medico_id, label, pendientes }] */
   async visitasAgrupadasPorMedico(): Promise<Array<{ medico_id: number; label: string; total: number }>> {
     const rows = await db
       .from('visitas')
+      .where('estado', true)
       .select('medico_id')
       .count('* as total')
       .groupBy('medico_id')
