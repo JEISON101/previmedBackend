@@ -218,13 +218,12 @@ export default class PacientesServices {
     try {
       const pac = await Paciente.query().where('usuario_id', id).first()
       if (!pac) {
-        return 'Paciente no encontrado'
+        return []
       }
       const pacientes = await Paciente.query().where('paciente_id', pac.paciente_id? pac.paciente_id : pac.id_paciente).orWhere('id_paciente', pac.paciente_id? pac.paciente_id : pac.id_paciente).preload('usuario')
       return pacientes
     } catch (error) {
-      return 'Error al obtener los pacientes'
-    }
+      return []    }
   }
 
 async exportExcel(filtro: string) {
@@ -305,8 +304,14 @@ async exportExcel(filtro: string) {
       return buffer
       
     } catch (error) {
-      console.error('Error completo:', error)
       throw error
     }
+  }
+
+  async desvincular(idPaciente: number){
+    const nuevo = await Paciente.find(idPaciente);
+    if(!nuevo) return null;
+    nuevo.paciente_id = null;
+    await nuevo.save()
   }
 }

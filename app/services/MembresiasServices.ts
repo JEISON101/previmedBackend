@@ -1,6 +1,9 @@
 import Membresia from '#models/membresia'
 import MembresiaXPaciente from '#models/membresia_x_paciente'
 import { DateTime } from 'luxon'
+import PacientesServices from './PacientesServices.js'
+import RegistrosPagoService from './RegistrosPagosServices.js'
+import MembresiaXPacienteService from './MembresiaXPacientesServices.js'
 
 export default class MembresiasService {
   // Listar todas las membresías con preload profundo
@@ -42,6 +45,7 @@ async crear(data: Partial<Membresia>, paciente_id?: number) {
       paciente_id,
       membresia_id: nueva.id_membresia
     })
+    return nueva;
   }
 
   // 3️⃣ Cargar relación membresiaPaciente antes de devolver
@@ -137,4 +141,66 @@ async buscarActivaPorDocumento(numero_documento: string) {
     },
   }
 }
+
+  async renovarContrato(data: any) {
+    const { pago, contrato, personasAsignadas, titularId } = data;
+
+    const pacienteService = new PacientesServices();
+    const pagoService = new RegistrosPagoService();
+    const contXpaci = new MembresiaXPacienteService();
+
+    try {
+      const titular = await pacienteService.readById(titularId);
+      if (!titular?.usuario_id) {
+        throw new Error('Usuario ID del titular no encontrado');
+      }
+
+      await pacienteService.desvincular(titularId);
+
+      const nuevoContrato = await this.crear({
+        ...contrato,
+        firma: `${titular.usuario.nombre} ${titular.usuario.apellido}`
+      });
+
+      await pagoService.create_pago({
+        ...pago,
+        membresia_id: nuevoContrato.id_membresia,
+        fecha_pago: new Date(),
+        estado: 'Realizado'
+      });
+
+      // Obtener círculo de personas del anterior contrato
+      const circuloPersonas = await pacienteService.getUsuariosId(titular.usuario_id);
+
+      // Desvincular pacientes que no están en el nuevo contrato
+      const pacientesDesvincular = circuloPersonas.filter((v: any) =>
+        !personasAsignadas.some((n: any) => n.idPaciente === v.idPaciente)
+      );
+
+      if (pacientesDesvincular.length > 0) {
+        for (const p of pacientesDesvincular) {
+          await pacienteService.desvincular(p.id_paciente);
+        }
+      }
+
+      for (const p of personasAsignadas) {
+        if (p.idPaciente !== titularId) {
+          await pacienteService.asociarBeneficiario(p.idPaciente, titularId);
+        }
+        await contXpaci.create({
+          paciente_id: p.idPaciente,
+          membresia_id: nuevoContrato.id_membresia
+        });
+      }
+
+      return {
+        contrato: nuevoContrato,
+        personasAsociadas: personasAsignadas.length
+      };
+
+    } catch (error) {
+      throw error.message;
+    }
+  }
+
 }
