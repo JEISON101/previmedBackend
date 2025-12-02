@@ -91,18 +91,48 @@ export default class PacientesServices {
     return await Paciente.query().where('usuario_id', usuarioId).first()
   }
 
+  /**
+   * ✅ Leer beneficiarios con información del titular
+   */
   async readBeneficiarios(pacienteId?: number) {
-    const query = Paciente.query()
-      .where('beneficiario', true)
-      .preload('usuario')
+    const query = Paciente.query().where('beneficiario', true).preload('usuario')
 
     if (pacienteId) {
       query.where('paciente_id', pacienteId)
+
+      // ✅ AGREGAR: Cargar también el titular con su membresía y plan
+      query.preload('paciente', (titularQuery) => {
+        titularQuery.preload('usuario').preload('membresiaPaciente', (mxpQuery) => {
+          mxpQuery.preload('membresia', (membresiaQuery) => {
+            membresiaQuery.preload('plan')
+          })
+        })
+      })
     } else {
       query.preload('paciente', (t) => t.preload('usuario'))
     }
 
-    return await query
+    const beneficiarios = await query
+
+    // ✅ Si hay pacienteId, devolver también info del titular
+    if (pacienteId) {
+      const titular = await Paciente.query()
+        .where('id_paciente', pacienteId)
+        .preload('usuario')
+        .preload('membresiaPaciente', (mxpQuery) => {
+          mxpQuery.preload('membresia', (membresiaQuery) => {
+            membresiaQuery.preload('plan')
+          })
+        })
+        .first()
+
+      return {
+        data: beneficiarios,
+        titular: titular,
+      }
+    }
+
+    return beneficiarios
   }
 
   /**
@@ -126,6 +156,28 @@ export default class PacientesServices {
     } catch (e) {
       await trx.rollback()
       throw new Error(`Error al asociar beneficiario: ${e.message}`)
+    }
+  }
+
+  /**
+   * ✅ Desvincular beneficiario del titular
+   */
+  async desvincularBeneficiario(idBeneficiario: number) {
+    const trx = await db.transaction()
+    try {
+      const beneficiario = await Paciente.findOrFail(idBeneficiario, { client: trx })
+      beneficiario.useTransaction(trx)
+
+      beneficiario.paciente_id = null as any
+      beneficiario.beneficiario = false
+      beneficiario.activo = false
+
+      await beneficiario.save()
+      await trx.commit()
+      return beneficiario
+    } catch (e) {
+      await trx.rollback()
+      throw new Error(`Error al desvincular beneficiario: ${e.message}`)
     }
   }
 
@@ -169,9 +221,9 @@ export default class PacientesServices {
       await nuevoPago.save()
 
       // Crear beneficiarios
-    const beneficiariosCreados = []
-    
-    for (const beneficiario of beneficiarios) {
+      const beneficiariosCreados = []
+
+      for (const beneficiario of beneficiarios) {
         // Crear Usuario Beneficiario
         const nuevoUsuarioBeneficiario = new Usuario()
         nuevoUsuarioBeneficiario.useTransaction(trx)
@@ -195,19 +247,18 @@ export default class PacientesServices {
 
         beneficiariosCreados.push({
           usuario: nuevoUsuarioBeneficiario,
-          paciente: nuevoPacienteBeneficiario
+          paciente: nuevoPacienteBeneficiario,
         })
       }
 
       await trx.commit()
 
       return {
-          titular: {nuevoTitular, nuevoPaciente},
-          contrato: nuevoContrato,
-          pago: nuevoPago,
-          beneficiarios: beneficiariosCreados
+        titular: { nuevoTitular, nuevoPaciente },
+        contrato: nuevoContrato,
+        pago: nuevoPago,
+        beneficiarios: beneficiariosCreados,
       }
-
     } catch (error) {
       await trx.rollback()
       throw error
@@ -220,48 +271,63 @@ export default class PacientesServices {
       if (!pac) {
         return []
       }
-      const pacientes = await Paciente.query().where('paciente_id', pac.paciente_id? pac.paciente_id : pac.id_paciente).orWhere('id_paciente', pac.paciente_id? pac.paciente_id : pac.id_paciente).preload('usuario')
+      const pacientes = await Paciente.query()
+        .where('paciente_id', pac.paciente_id ? pac.paciente_id : pac.id_paciente)
+        .orWhere('id_paciente', pac.paciente_id ? pac.paciente_id : pac.id_paciente)
+        .preload('usuario')
       return pacientes
     } catch (error) {
-      return []    }
+      return []
+    }
   }
 
-async exportExcel(filtro: string) {
+  /**
+   * ✅ Obtener beneficiarios y plan del titular
+   */
+  async readByPlanTitular(id: number) {
+    return await Paciente.query()
+      .where('id_paciente', id)
+      .preload('usuario')
+      .preload('membresiaPaciente', (mxp) => {
+        mxp.preload('membresia', (m) => m.preload('plan'))
+      })
+      .first()
+  }
+
+  async exportExcel(filtro: string) {
     try {
       // Consultar pacientes con su última membresía
-      const pacientes = await Paciente
-        .query()
+      const pacientes = await Paciente.query()
         .preload('usuario', (qu) => {
           qu.preload('eps')
         })
         .preload('membresiaPaciente', (qmp) => {
-          qmp.preload('membresia', (qm) => qm.preload('plan'))
+          qmp
+            .preload('membresia', (qm) => qm.preload('plan'))
             .orderBy('id_membresia_x_paciente', 'desc')
         })
 
       // Filtrar por estado
       let filtrados = pacientes
       if (filtro === 'activa') {
-        filtrados = pacientes.filter(p => 
-          p.membresiaPaciente.length > 0 && 
-          p.membresiaPaciente[0].membresia.estado === true
+        filtrados = pacientes.filter(
+          (p) => p.membresiaPaciente.length > 0 && p.membresiaPaciente[0].membresia.estado === true
         )
       }
       if (filtro === 'inactiva') {
-        filtrados = pacientes.filter(p => 
-          p.membresiaPaciente.length > 0 && 
-          p.membresiaPaciente[0].membresia.estado === false
+        filtrados = pacientes.filter(
+          (p) => p.membresiaPaciente.length > 0 && p.membresiaPaciente[0].membresia.estado === false
         )
       }
 
       const cambiarFecha = (fecha: any) => {
-        if (!fecha) return '';
-        const d = new Date(fecha);
-        return isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-CO');
-      };
- 
+        if (!fecha) return ''
+        const d = new Date(fecha)
+        return isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-CO')
+      }
+
       // Convertir a objetos planos
-      const datosExcel = filtrados.map(p => {
+      const datosExcel = filtrados.map((p) => {
         const ultimaMembresia = p.membresiaPaciente[0]?.membresia || null
         return {
           'Nombre': p.usuario?.nombre || '',
@@ -279,9 +345,9 @@ async exportExcel(filtro: string) {
           'Género': p.usuario?.genero || '',
           'EPS': p.usuario?.eps?.nombre_eps || '',
           'Habilitado': p.usuario?.habilitar ? 'Sí' : 'No',
-          'Uso del Servicio': p.beneficiario? 'SI' : 'NO',
+          'Uso del Servicio': p.beneficiario ? 'SI' : 'NO',
           'Ocupación': p.ocupacion || '',
-          'Cargo': p.paciente_id != null? 'BENEFICIARIO' : 'TITULAR',
+          'Cargo': p.paciente_id != null ? 'BENEFICIARIO' : 'TITULAR',
           'Numero de Contrato': ultimaMembresia?.numero_contrato || '',
           'Contrato Inicio': cambiarFecha(ultimaMembresia?.fecha_inicio) || '',
           'Contrato Fin': cambiarFecha(ultimaMembresia?.fecha_fin) || '',
@@ -296,22 +362,25 @@ async exportExcel(filtro: string) {
       const hoja = XLSX.utils.json_to_sheet(datosExcel)
       XLSX.utils.book_append_sheet(workbook, hoja, 'Pacientes')
 
-      // Exportar como CSV 
+      // Exportar como CSV
       const csv = XLSX.utils.sheet_to_csv(hoja)
-      
+
       // Agregar BOM para que Excel reconozca UTF-8 correctamente
       const buffer = Buffer.from('\uFEFF' + csv, 'utf-8')
       return buffer
-      
     } catch (error) {
+      console.error('Error completo:', error)
       throw error
     }
   }
 
-  async desvincular(idPaciente: number){
-    const nuevo = await Paciente.find(idPaciente);
-    if(!nuevo) return null;
-    nuevo.paciente_id = null;
+  /**
+   * ✅ Desvincular paciente (antiguo método)
+   */
+  async desvincular(idPaciente: number) {
+    const nuevo = await Paciente.find(idPaciente)
+    if (!nuevo) return null
+    nuevo.paciente_id = null
     await nuevo.save()
   }
 }

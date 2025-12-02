@@ -130,7 +130,11 @@ export default class PacientesController {
   async updateById({ request, response }: HttpContext) {
     try {
       const data = request.body()
-      const userid = await paciente.update(data.paciente.id_paciente, data.paciente, data.paciente.usuario);
+      const userid = await paciente.update(
+        data.paciente.id_paciente,
+        data.paciente,
+        data.paciente.usuario
+      )
       return response.status(200).json({ message: 'Actualizado', data: userid })
     } catch (e) {
       return response.status(500).json({ message: 'Error', error: e.message })
@@ -174,17 +178,24 @@ export default class PacientesController {
     }
   }
 
+  /**
+   * ✅ Obtener beneficiarios del titular
+   */
   async readBeneficiarios({ params, response }: HttpContext) {
     try {
       const { paciente_id } = params
-      const data = await paciente.readBeneficiarios(Number(paciente_id))
-      return response
-        .status(200)
-        .json({ message: 'Beneficiarios del titular obtenidos correctamente', data })
+      const resultado = await paciente.readBeneficiarios(
+        paciente_id ? Number(paciente_id) : undefined
+      )
+
+      return response.status(200).json({
+        message: 'Beneficiarios obtenidos correctamente',
+        ...resultado, // Esto incluirá data y titular si aplica
+      })
     } catch (e) {
       return response
         .status(500)
-        .json({ message: 'Error al obtener beneficiarios del titular', error: e.message })
+        .json({ message: 'Error al obtener beneficiarios', error: e.message })
     }
   }
 
@@ -209,6 +220,22 @@ export default class PacientesController {
         return response.status(400).json({ message: 'IDs inválidos' })
       }
 
+      // ✅ Obtener plan del titular
+      const titular = await paciente.readByPlanTitular(idTitular)
+      if (!titular?.membresiaPaciente?.[0]?.membresia?.plan) {
+        return response.status(400).json({ message: 'No se pudo obtener el plan del titular' })
+      }
+
+      const limite = titular.membresiaPaciente[0].membresia.plan.cantidad_beneficiarios
+      const actuales = await paciente.readBeneficiarios(idTitular) // solo los suyos
+      const cantidadActual = Array.isArray(actuales) ? actuales.length : actuales.data?.length || 0
+
+      if (cantidadActual >= limite) {
+        return response
+          .status(400)
+          .json({ message: `Límite de beneficiarios alcanzado (${limite})` })
+      }
+
       const beneficiarioActualizado = await paciente.asociarBeneficiario(idBeneficiario, idTitular)
 
       return response.status(200).json({
@@ -223,22 +250,52 @@ export default class PacientesController {
     }
   }
 
-    //crear titular, flujo completo
-    public async registroCompletoTitular({ request, response }: HttpContext) {
+  /**
+   * ✅ Desvincular beneficiario del titular
+   * DELETE /pacientes/desvincular/:id
+   */
+  async desvincularBeneficiario({ params, response }: HttpContext) {
     try {
-      const user = new UsuarioService
+      const { id } = params
+      const idBeneficiario = Number(id)
+
+      if (isNaN(idBeneficiario)) {
+        return response.status(400).json({ message: 'ID inválido' })
+      }
+
+      const res = await paciente.desvincularBeneficiario(idBeneficiario)
+
+      return response.status(200).json({
+        message: 'Beneficiario desvinculado correctamente',
+        data: res,
+      })
+    } catch (e) {
+      return response
+        .status(500)
+        .json({ message: 'Error al desvincular beneficiario', error: e.message })
+    }
+  }
+
+  /**
+   * ✅ Crear titular con flujo completo (registro, contrato, pago, beneficiarios y emails)
+   * POST /pacientes/registro-completo-titular
+   */
+  async registroCompletoTitular({ request, response }: HttpContext) {
+    try {
+      const user = new UsuarioService()
       const data = request.all()
 
       if (!data.titular || !data.contrato || !data.pago) {
         return response.status(400).json({
-          message: 'Datos incompletos, se requiere titular, contrato y pago'
+          message: 'Datos incompletos, se requiere titular, contrato y pago',
         })
       }
+
       // Verificar que el titular no esté registrado
       const titular = await user.doc(data.titular.usuario.numero_documento)
       if (titular != null) {
         return response.status(400).json({
-          message: `El documento del titular ${await data.titular.usuario.nombre} ${await data.titular.usuario.apellido} ya se encuentra registrado`
+          message: `El documento del titular ${data.titular.usuario.nombre} ${data.titular.usuario.apellido} ya se encuentra registrado`,
         })
       }
 
@@ -249,82 +306,91 @@ export default class PacientesController {
       data.titular.usuario.rol_id = 4
 
       // Datos del contrato
-      data.contrato.firma =` ${data.titular.usuario.nombre} ${data.titular.usuario.apellido}`
-      data.contrato.estado = false // estará innactivo hasta que se verifique el pago
+      data.contrato.firma = `${data.titular.usuario.nombre} ${data.titular.usuario.apellido}`
+      data.contrato.estado = false // estará inactivo hasta que se verifique el pago
+
       // Datos del pago
       data.pago.fecha_pago = data.pago.fecha_inicio
 
       // Beneficiarios
       if (data.beneficiarios && Array.isArray(data.beneficiarios)) {
-      for (const beneficiario of data.beneficiarios) {
-        // Validar que el beneficiario no venga nulo
-        if(
-          !beneficiario.usuario.nombre ||
-          !beneficiario.usuario.apellido ||
-          !beneficiario.usuario.numero_documento ||
-          !beneficiario.usuario.tipo_documento ||
-          !beneficiario.usuario.fecha_nacimiento ||
-          !beneficiario.usuario.email ||
-          !beneficiario.usuario.direccion ||
-          !beneficiario.usuario.autorizacion_datos
-        ){
-          return response.status(400).json({
-            message: `Beneficiario con campos nulos`
-          })
-        }
+        for (const beneficiario of data.beneficiarios) {
+          // Validar que el beneficiario no venga nulo
+          if (
+            !beneficiario.usuario.nombre ||
+            !beneficiario.usuario.apellido ||
+            !beneficiario.usuario.numero_documento ||
+            !beneficiario.usuario.tipo_documento ||
+            !beneficiario.usuario.fecha_nacimiento ||
+            !beneficiario.usuario.email ||
+            !beneficiario.usuario.direccion ||
+            !beneficiario.usuario.autorizacion_datos
+          ) {
+            return response.status(400).json({
+              message: 'Beneficiario con campos nulos',
+            })
+          }
 
-        // Validar que el beneficiario no esté registrado
-        const pacienteBeneficiario = await user.doc(beneficiario.usuario.numero_documento)
-        if (pacienteBeneficiario) {
-          return response.status(400).json({
-            message: `El docuemento del beneficiario ${beneficiario.usuario.nombre} ${beneficiario.usuario.apellido} ya se encuentra registrado`
-          })
-        }
+          // Validar que el beneficiario no esté registrado
+          const pacienteBeneficiario = await user.doc(beneficiario.usuario.numero_documento)
+          if (pacienteBeneficiario) {
+            return response.status(400).json({
+              message: `El documento del beneficiario ${beneficiario.usuario.nombre} ${beneficiario.usuario.apellido} ya se encuentra registrado`,
+            })
+          }
 
-        beneficiario.usuario.id_usuario = uuidv4()
-        // si no llega la contraseña se hereda la del titular (ya viene hasheada)
-        if (!beneficiario.usuario.password) {
-          beneficiario.usuario.password = data.titular.usuario.password
-        } else {
-          beneficiario.usuario.password = await bcrypt.hash(beneficiario.usuario.password, 10)
+          beneficiario.usuario.id_usuario = uuidv4()
+          // si no llega la contraseña se hereda la del titular (ya viene hasheada)
+          if (!beneficiario.usuario.password) {
+            beneficiario.usuario.password = data.titular.usuario.password
+          } else {
+            beneficiario.usuario.password = await bcrypt.hash(beneficiario.usuario.password, 10)
+          }
+          // si no llega una dirección se hereda la del titular
+          beneficiario.paciente.direccion_cobro =
+            beneficiario.usuario.direccion || data.titular.usuario.direccion
+          beneficiario.usuario.rol_id = 4
+          beneficiario.paciente.beneficiario = true
         }
-        // si no llega una direccion se hereda la del titular
-        beneficiario.paciente.direccion_cobro = beneficiario.usuario.direccion || data.titular.usuario.direccion
-        beneficiario.usuario.rol_id = 4
-        beneficiario.paciente.beneficiario = true
       }
-    }
-      
-    const resultado = await paciente.registroCompletoTitular(data)
-    const __filename = fileURLToPath(import.meta.url)
-    const __dirname = path.dirname(__filename)
 
-    const terminosPath = path.join(__dirname, '..', 'uploads', 'Terminos_y_Condiciones_PREVIMED.pdf')
+      const resultado = await paciente.registroCompletoTitular(data)
+      const __filename = fileURLToPath(import.meta.url)
+      const __dirname = path.dirname(__filename)
 
-    // generar el pdf del contrato
-    const contratoPdf = await generarContratoPDF({
-      direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
-      telefonoPrevimed: '310 6236219',
-      beneficiarios: resultado.beneficiarios,
-      titularNombre: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre??''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido??''}`,
-      titularEmail: resultado.titular.nuevoTitular.email,
-      titularDocumento: resultado.titular.nuevoTitular.numero_documento,
-      membresia: resultado.contrato.numero_contrato
-    });
+      const terminosPath = path.join(
+        __dirname,
+        '..',
+        'uploads',
+        'Terminos_y_Condiciones_PREVIMED.pdf'
+      )
 
-    // enviar email de bienvenida al titular
+      // generar el pdf del contrato
+      const contratoPdf = await generarContratoPDF({
+        direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+        telefonoPrevimed: '310 6236219',
+        beneficiarios: resultado.beneficiarios,
+        titularNombre: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre ?? ''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido ?? ''}`,
+        titularEmail: resultado.titular.nuevoTitular.email,
+        titularDocumento: resultado.titular.nuevoTitular.numero_documento,
+        membresia: resultado.contrato.numero_contrato,
+      })
+
+      // enviar email de bienvenida al titular
       await mail.send((message) => {
         message
           .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
-          .to((data.titular.usuario.email).trim())
-          .subject(`Registro exitoso`)
-          .html(emailBienvenidaTitular({
-            nombre: data.titular.usuario.nombre,
-            apellido: data.titular.usuario.apellido,
-            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
-            telefonoPrevimed: '310 6236219',
-            beneficiarios: resultado.beneficiarios
-          }))
+          .to(data.titular.usuario.email.trim())
+          .subject('Registro exitoso')
+          .html(
+            emailBienvenidaTitular({
+              nombre: data.titular.usuario.nombre,
+              apellido: data.titular.usuario.apellido,
+              direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+              telefonoPrevimed: '310 6236219',
+              beneficiarios: resultado.beneficiarios,
+            })
+          )
           .attachData(Buffer.from(contratoPdf), {
             filename: `Contrato-${resultado.titular.nuevoTitular.numero_documento}.pdf`,
             contentType: 'application/pdf',
@@ -332,82 +398,89 @@ export default class PacientesController {
           .attach(terminosPath)
       })
 
-    // enviar email de bienvenida a los beneficiarios
-    if(resultado.beneficiarios.length > 0){
-      resultado.beneficiarios.map(async(b)=>{
-        await mail.send((message) => {
-          message
-          .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
-          .to((b.usuario.email).trim())
-          .subject(`Registro exitoso`)
-          .html(emailBienvenidaBeneficiario({
-            nombreBeneficiario: `${b.usuario.nombre} ${b.usuario.segundo_nombre??''} ${b.usuario.apellido} ${b.usuario.segundo_apellido??''}`,
-            nombreTitular: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre??''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido??''}`,
-            emailTitular: resultado.titular.nuevoTitular.email,
-            numeroDocumento: b.usuario.numero_documento,
-            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
-            telefonoPrevimed: '310 6236219'
-          }))
-          .attachData(Buffer.from(contratoPdf), {
-            filename: `Contrato-${b.usuario.numero_documento}.pdf`,
-            contentType: 'application/pdf',
+      // enviar email de bienvenida a los beneficiarios
+      if (resultado.beneficiarios.length > 0) {
+        resultado.beneficiarios.map(async (b) => {
+          await mail.send((message) => {
+            message
+              .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+              .to(b.usuario.email.trim())
+              .subject('Registro exitoso')
+              .html(
+                emailBienvenidaBeneficiario({
+                  nombreBeneficiario: `${b.usuario.nombre} ${b.usuario.segundo_nombre ?? ''} ${b.usuario.apellido} ${b.usuario.segundo_apellido ?? ''}`,
+                  nombreTitular: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre ?? ''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido ?? ''}`,
+                  emailTitular: resultado.titular.nuevoTitular.email,
+                  numeroDocumento: b.usuario.numero_documento,
+                  direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+                  telefonoPrevimed: '310 6236219',
+                })
+              )
+              .attachData(Buffer.from(contratoPdf), {
+                filename: `Contrato-${b.usuario.numero_documento}.pdf`,
+                contentType: 'application/pdf',
+              })
+              .attach(terminosPath)
           })
-          .attach(terminosPath)
         })
-      })
-    }
+      }
 
-    const usersAdmin = await user.getUsersAdmin();
-    const fp = new FormasPagosServices
-    const resFormaPago = await fp.findById(resultado.pago.forma_pago_id); // la forma de pago que se usó en el pago
+      const usersAdmin = await user.getUsersAdmin()
+      const fp = new FormasPagosServices()
+      const resFormaPago = await fp.findById(resultado.pago.forma_pago_id) // la forma de pago que se usó en el pago
 
-    // enviar email de verificacion de pago a los usuarios admin
-    if(usersAdmin.length > 0){
-      usersAdmin.map(async(a)=>{
-        await mail.send((message) => {
-          message
-          .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
-          .to((a.email).trim())
-          .subject(`Verificación de pago`)
-          .html(emailVerificarPagoAdmin({
-            monto: resultado.pago.monto,
-            nombreAdmin: a.nombre,
-            nombreTitular: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre??''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido??''}`,
-            formaPago: resFormaPago.tipo_pago,
-            fechaCobro: resultado.pago.fecha_pago,
-            fechaInicioPago: resultado.pago.fecha_inicio,
-            fechaFinPago: resultado.pago.fecha_fin,
-            numeroMembresia: resultado.contrato.numero_contrato,
-            fechaInicioMembresia: resultado.contrato.fecha_inicio,
-            fechaFinMembresia: resultado.contrato.fecha_fin,
-            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
-            telefonoPrevimed: '310 6236219'
-          }))
+      // enviar email de verificación de pago a los usuarios admin
+      if (usersAdmin.length > 0) {
+        usersAdmin.map(async (a) => {
+          await mail.send((message) => {
+            message
+              .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+              .to(a.email.trim())
+              .subject('Verificación de pago')
+              .html(
+                emailVerificarPagoAdmin({
+                  monto: resultado.pago.monto,
+                  nombreAdmin: a.nombre,
+                  nombreTitular: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre ?? ''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido ?? ''}`,
+                  formaPago: resFormaPago.tipo_pago,
+                  fechaCobro: resultado.pago.fecha_pago,
+                  fechaInicioPago: resultado.pago.fecha_inicio,
+                  fechaFinPago: resultado.pago.fecha_fin,
+                  numeroMembresia: resultado.contrato.numero_contrato,
+                  fechaInicioMembresia: resultado.contrato.fecha_inicio,
+                  fechaFinMembresia: resultado.contrato.fecha_fin,
+                  direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+                  telefonoPrevimed: '310 6236219',
+                })
+              )
+          })
         })
+      }
+
+      return response.status(201).json({
+        message: 'Registro exitoso',
+        data: resultado,
       })
-    } 
-
-    return response.status(201).json({
-      message: 'Registro exitoso',
-      data: resultado,
-    })
-
     } catch (error) {
       return response.status(500).json({
         message: 'Error en el registro',
-        error: error.message
+        error: error.message,
       })
     }
   }
 
-  async getUsuariosId({params, response}:HttpContext){
-    const user = new PacientesServices
+  /**
+   * ✅ Obtener pacientes relacionados a un usuario
+   * GET /pacientes/usuarios/:id
+   */
+  async getUsuariosId({ params, response }: HttpContext) {
+    const user = new PacientesServices()
     try {
-      const {id} = params
+      const { id } = params
       const res = await user.getUsuariosId(id)
-      return  response.status(200).json(res)
+      return response.status(200).json({ message: 'Pacientes obtenidos', data: res })
     } catch (error) {
-      return response.status(500).json(error.message)
+      return response.status(500).json({ message: 'Error', error: error.message })
     }
   }
 }
