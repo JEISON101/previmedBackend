@@ -135,6 +135,29 @@ public async buscarActiva({ params, response }: HttpContext) {
       });
     }
   }
+
+  async renovarContrato({ request, response }: HttpContext) {
+    try {
+      const service = new MembresiasService();
+      const data = request.body();
+
+      const resultado = await service.renovarContrato(data);
+
+      return response.status(200).send({
+        ok: true,
+        message: "Contrato renovado exitosamente",
+        data: resultado
+      });
+    } catch (error) {
+      console.error('Error en renovarContrato controller:', error);
+      return response.status(400).send({
+        ok: false,
+        message: "No se pudo renovar el contrato",
+        error: error.message
+      });
+    }
+  }
+
 }
 
 export async function generarContratoPDF(data: any): Promise<any> {
