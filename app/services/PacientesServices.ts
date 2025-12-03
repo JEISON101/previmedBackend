@@ -35,7 +35,8 @@ export default class PacientesServices {
       .whereNull('paciente_id')
       .has('membresiaPaciente')
       .preload('membresiaPaciente', (mxpQuery) => {
-        mxpQuery.preload('membresia')
+        mxpQuery.orderBy('membresia_id', 'desc')
+        .preload('membresia')
       })
   }
 
