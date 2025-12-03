@@ -7,7 +7,6 @@ import mail from '@adonisjs/mail/services/main'
 import { emailBienvenidaTitular } from '../templates/emailBienvenidaTitular.js'
 import { emailBienvenidaBeneficiario } from '../templates/emailBienvenidaBeneficiario.js'
 import { emailVerificarPagoAdmin } from '../templates/emailVerificarPagoAdmin.js'
-import { generarContratoPDF } from './MembresiasController.js'
 import FormasPagosServices from '#services/FormasPagosServices'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -301,17 +300,6 @@ export default class PacientesController {
 
     const terminosPath = path.join(__dirname, '..', 'uploads', 'Terminos_y_Condiciones_PREVIMED.pdf')
 
-    // generar el pdf del contrato
-    const contratoPdf = await generarContratoPDF({
-      direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
-      telefonoPrevimed: '310 6236219',
-      beneficiarios: resultado.beneficiarios,
-      titularNombre: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre??''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido??''}`,
-      titularEmail: resultado.titular.nuevoTitular.email,
-      titularDocumento: resultado.titular.nuevoTitular.numero_documento,
-      membresia: resultado.contrato.numero_contrato
-    });
-
     // enviar email de bienvenida al titular
       await mail.send((message) => {
         message
@@ -325,10 +313,6 @@ export default class PacientesController {
             telefonoPrevimed: '310 6236219',
             beneficiarios: resultado.beneficiarios
           }))
-          .attachData(Buffer.from(contratoPdf), {
-            filename: `Contrato-${resultado.titular.nuevoTitular.numero_documento}.pdf`,
-            contentType: 'application/pdf',
-          })
           .attach(terminosPath)
       })
 
@@ -348,10 +332,6 @@ export default class PacientesController {
             direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
             telefonoPrevimed: '310 6236219'
           }))
-          .attachData(Buffer.from(contratoPdf), {
-            filename: `Contrato-${b.usuario.numero_documento}.pdf`,
-            contentType: 'application/pdf',
-          })
           .attach(terminosPath)
         })
       })
