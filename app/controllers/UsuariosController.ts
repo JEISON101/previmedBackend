@@ -81,6 +81,12 @@ export default class UsuariosController {
         return response.status(400).json({ msg: 'La contraseña es obligatoria' })
       }
 
+      const userExist = await usuarioServices.doc(data.numero_documento);
+
+      if (userExist){
+        return response.status(417).json({msg:"El usuario ya se encuentra registrado"})
+      }
+
       const usuario = await usuarioServices.create(data)
       return response.status(201).json({ msg: 'Usuario creado', data: usuario })
     } catch (e) {
