@@ -2,6 +2,7 @@ import RegistrosPagoService from '#services/RegistrosPagosServices'
 import { HttpContext } from '@adonisjs/core/http'
 import { PostRegistroPago } from '../interfaces/registros_pagos.js'
 import { v2 as cloudinary } from 'cloudinary'
+import Membresia from '#models/membresia'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -165,7 +166,13 @@ export default class RegistrosPagoController {
   async setEstadoPago({params, response}: HttpContext){
     try {
       const {id_pago, estado} = params;
-      await this.service.setEstadoPago(estado, id_pago)
+      const pago = await this.service.setEstadoPago(estado, id_pago)
+      if(estado == 'Aprobado'){
+        const contrato = await Membresia.find(pago?.membresia_id)
+        if(!contrato) return
+        contrato.estado = true;
+        await contrato.save();
+      }
       return response.status(200).send({message: 'Estado actualizado correctamente'})
     } catch (error) {
       return response.status(500).send({message: 'Error al cambiar el estado'});
