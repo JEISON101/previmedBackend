@@ -10,6 +10,7 @@ import { emailVerificarPagoAdmin } from '../templates/emailVerificarPagoAdmin.js
 import FormasPagosServices from '#services/FormasPagosServices'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import MembresiaXPacienteService from '#services/MembresiaXPacientesServices'
 
 const paciente = new PacientesServices()
 
@@ -81,6 +82,15 @@ export default class PacientesController {
           rol_id,
         }
       )
+
+      if(paciente_id){
+        const serviceMxP = new MembresiaXPacienteService
+        const titular = await paciente.readById(paciente_id)
+        if(titular){
+          const membresiaTitular = await serviceMxP.getByUserId(titular?.usuario_id);
+          await serviceMxP.create({paciente_id: newPaciente.id_paciente, membresia_id: membresiaTitular?.membresia_id??0})
+        }
+      }
 
       return response.status(201).json({ message: 'Creado', data: newPaciente })
     } catch (e) {
