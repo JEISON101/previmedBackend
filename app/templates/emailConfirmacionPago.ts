@@ -8,8 +8,8 @@ export const emailConfirmacionPago = (data:{
   numeroMembresia:string
   fechaInicioMembresia: string;
   fechaFinMembresia: string;
-  direccionPrevimed: string;
-  telefonoPrevimed: string;
+  direccionMediHome: string;
+  telefonoMediHome: string;
 }) => 
 `
 <!doctype html>
@@ -40,7 +40,7 @@ export const emailConfirmacionPago = (data:{
     <table class="main" role="presentation" cellpadding="0" cellspacing="0">
       <tr>
         <td class="header">
-          <img class="logo" src="https://res.cloudinary.com/dudqqzt1k/image/upload/v1761360937/PREVIMED_Full_Color_zwphjh.png" alt="PREVIMED S.A.S" />
+          <img class="logo" src="https://res.cloudinary.com/dudqqzt1k/image/upload/v1765479080/logo_medihome_sin_fondo_zordag.png" alt="MEDIHOME S.A.S" />
         </td>
       </tr>
       <tr>
@@ -60,13 +60,13 @@ export const emailConfirmacionPago = (data:{
           <p><span class="label">Inicio de membresía:</span> <span class="value">${data.fechaInicioMembresia}</span></p>
           <p><span class="label">Fin de membresía:</span> <span class="value">${data.fechaFinMembresia}</span></p>
           </div>
-          <p style="margin-top:24px;">Gracias por confiar en <strong>PREVIMED S.A.S</strong>. Estamos felices de tenerte con nosotros.</p>
+          <p style="margin-top:24px;">Gracias por confiar en <strong>MEDIHOME S.A.S</strong>. Estamos felices de tenerte con nosotros.</p>
         </td>
       </tr>
       <tr>
         <td class="footer">
-                    <p class="muted">Dirección: ${data.direccionPrevimed} · Cel: ${data.telefonoPrevimed}</p>
-          <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} PREVIMED S.A.S. Todos los derechos reservados.</p>
+                    <p class="muted">Dirección: ${data.direccionMediHome} · Cel: ${data.telefonoMediHome}</p>
+          <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} MEDIHOME S.A.S. Todos los derechos reservados.</p>
         </td>
       </tr>
     </table>

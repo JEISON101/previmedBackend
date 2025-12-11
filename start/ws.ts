@@ -5,7 +5,7 @@ import server from '@adonisjs/core/services/server'
 app.ready(() => {
   const io = new Server(server.getNodeServer(), {
     cors: {
-      origin: '*', // Esta configución se debe eliminar no olvidar solo permitir las fuentes de previmed ejemplo 'https://previmed.render.com'. o el dominio que compren... Saludos Jorge
+      origin: '*', // Esta configución se debe eliminar no olvidar solo permitir las fuentes de medihome ejemplo 'https://medihome.render.com'. o el dominio que compren...
     },
   })
 

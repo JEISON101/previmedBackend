@@ -3,8 +3,8 @@ export const emailBienvenidaTitular = (data:{
   segundoNombre?:string;
   apellido:string;
   segundoApellido?:string;
-  direccionPrevimed:string;
-  telefonoPrevimed:string;
+  direccionMediHome:string;
+  telefonoMediHome:string;
   beneficiarios:any[];
 }) => 
 `
@@ -13,7 +13,7 @@ export const emailBienvenidaTitular = (data:{
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bienvenido a PREVEIMED S.A.S</title>
+  <title>Bienvenido a MEDIHOME S.A.S</title>
   <style>
     body { margin:0; padding:0; background-color:#f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
     .wrapper { width:100%; table-layout:fixed; background-color:#f3f4f6; padding:20px 0; }
@@ -40,12 +40,12 @@ export const emailBienvenidaTitular = (data:{
     <table class="main" role="presentation" cellpadding="0" cellspacing="0">
       <tr>
         <td class="header">
-          <img class="logo" src="https://res.cloudinary.com/dudqqzt1k/image/upload/v1761360937/PREVIMED_Full_Color_zwphjh.png" alt="PREVIMED S.A.S" />
+          <img class="logo" src="https://res.cloudinary.com/dudqqzt1k/image/upload/v1765479080/logo_medihome_sin_fondo_zordag.png" alt="MEDIHOME S.A.S" />
         </td>
       </tr>
       <tr>
         <td class="content">
-          <h1>Bienvenido/a a PREVIMED S.A.S, ${data.nombre} ${data.segundoNombre?? ''} ${data.apellido} ${data.segundoApellido??''}</h1>
+          <h1>Bienvenido/a a MEDIHOME S.A.S, ${data.nombre} ${data.segundoNombre?? ''} ${data.apellido} ${data.segundoApellido??''}</h1>
           <p>Tu registro ha sido un exito. Aquí tienes la información básica y los documentos importantes que debes conocer.</p>
 
           <div class="card">
@@ -75,7 +75,7 @@ export const emailBienvenidaTitular = (data:{
           <p>Descarga y revisa los documentos oficiales a continuación. Si tienes preguntas, responde a este correo o visita tu panel en la aplicación.</p>
 
           <div class="button-wrap">
-            <a class="btn btn-outline" href="https://res.cloudinary.com/dudqqzt1k/image/upload/v1761366273/Terminos_y_Condiciones_PREVIMED_mkxon0.pdf" target="_blank">Términos y condiciones</a>
+            <a class="btn btn-outline" href="https://res.cloudinary.com/dudqqzt1k/image/upload/v1765479606/Terminos_y_Condiciones_MEDIHOME_zvdvtm.pdf" target="_blank">Términos y condiciones</a>
           </div>
           <p>Aunque ya se realizó exitosamente tu registro dentro de la aplicación, aun no puedes hacer uso de nuestros servicios.</p>
           <p>Una vez confirmado tu pago te llegará un correo electronico y se activarán los servicios para que puedas disfrutar de ellos.</p>
@@ -85,13 +85,13 @@ export const emailBienvenidaTitular = (data:{
               Si en un plazo de <strong>48 horas</strong> no se ha confirmado tu pago, por favor comunícate con nosotros.
             </p>
           </div>
-          <p>Recibiste este correo porque te registraste en PREVIMED S.A.S. Si no autorizaste tu registro en la plataforma contactanos de inmediato.</p>
+          <p>Recibiste este correo porque te registraste en MEDIHOME S.A.S. Si no autorizaste tu registro en la plataforma contactanos de inmediato.</p>
         </td>
       </tr>
       <tr>
         <td class="footer">
-          <p class="muted">Dirección: ${data.direccionPrevimed} · Cel: ${data.telefonoPrevimed}</p>
-          <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} PREVIMED S.A.S. Todos los derechos reservados.</p>
+          <p class="muted">Dirección: ${data.direccionMediHome} · Cel: ${data.telefonoMediHome}</p>
+          <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} MEDIHOME S.A.S. Todos los derechos reservados.</p>
         </td>
       </tr>
     </table>

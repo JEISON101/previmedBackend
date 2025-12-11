@@ -26,7 +26,7 @@ export const emailVisitaMedico = (data: {
           <tr>
             <td style="background:linear-gradient(135deg,#667eea,#764ba2); padding:35px 25px; text-align:center;">
               <h1 style="margin:0; color:#ffffff; font-size:28px; font-weight:600;">Nueva Visita Asignada</h1>
-              <p style="margin:8px 0 0; color:#e0e7ff; font-size:16px;">PREVIMED S.A.S</p>
+              <p style="margin:8px 0 0; color:#e0e7ff; font-size:16px;">MEDIHOME S.A.S</p>
             </td>
           </tr>
 
@@ -114,7 +114,7 @@ export const emailVisitaMedico = (data: {
           <tr>
             <td style="background-color:#f9fafb; padding:25px; text-align:center; border-top:1px solid #e5e7eb;">
               <p style="margin:0 0 8px; color:#777; font-size:12px;">Este es un correo automático, por favor no responder.</p>
-              <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} PREVIMED S.A.S. Todos los derechos reservados.</p>
+              <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} MEDIHOME S.A.S. Todos los derechos reservados.</p>
             </td>
           </tr>
         </table>

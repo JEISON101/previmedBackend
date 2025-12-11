@@ -308,19 +308,19 @@ export default class PacientesController {
     const __filename = fileURLToPath(import.meta.url)
     const __dirname = path.dirname(__filename)
 
-    const terminosPath = path.join(__dirname, '..', 'uploads', 'Terminos_y_Condiciones_PREVIMED.pdf')
+    const terminosPath = path.join(__dirname, '..', 'uploads', 'Terminos_y_Condiciones_MEDIHOME.pdf')
 
     // enviar email de bienvenida al titular
       await mail.send((message) => {
         message
-          .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+          .from(process.env.MAIL_FROM_ADDRESS || 'proyectomedihome@gmail.com', 'MEDIHOME S.A.S')
           .to((data.titular.usuario.email).trim())
           .subject(`Registro exitoso`)
           .html(emailBienvenidaTitular({
             nombre: data.titular.usuario.nombre,
             apellido: data.titular.usuario.apellido,
-            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
-            telefonoPrevimed: '310 6236219',
+            direccionMediHome: 'Cra 9 # 9n-19, Popayán, Colombia',
+            telefonoMediHome: '310 6236219',
             beneficiarios: resultado.beneficiarios
           }))
           .attach(terminosPath)
@@ -331,7 +331,7 @@ export default class PacientesController {
       resultado.beneficiarios.map(async(b)=>{
         await mail.send((message) => {
           message
-          .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+          .from(process.env.MAIL_FROM_ADDRESS || 'proyectomedihome@gmail.com', 'MEDIHOME S.A.S')
           .to((b.usuario.email).trim())
           .subject(`Registro exitoso`)
           .html(emailBienvenidaBeneficiario({
@@ -339,8 +339,8 @@ export default class PacientesController {
             nombreTitular: `${resultado.titular.nuevoTitular.nombre} ${resultado.titular.nuevoTitular.segundo_nombre??''} ${resultado.titular.nuevoTitular.apellido} ${resultado.titular.nuevoTitular.segundo_apellido??''}`,
             emailTitular: resultado.titular.nuevoTitular.email,
             numeroDocumento: b.usuario.numero_documento,
-            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
-            telefonoPrevimed: '310 6236219'
+            direccionMediHome: 'Cra 9 # 9n-19, Popayán, Colombia',
+            telefonoMediHome: '310 6236219'
           }))
           .attach(terminosPath)
         })
@@ -356,7 +356,7 @@ export default class PacientesController {
       usersAdmin.map(async(a)=>{
         await mail.send((message) => {
           message
-          .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+          .from(process.env.MAIL_FROM_ADDRESS || 'proyectomedihome@gmail.com', 'MEDIHOME S.A.S')
           .to((a.email).trim())
           .subject(`Verificación de pago`)
           .html(emailVerificarPagoAdmin({
@@ -370,8 +370,8 @@ export default class PacientesController {
             numeroMembresia: resultado.contrato.numero_contrato,
             fechaInicioMembresia: resultado.contrato.fecha_inicio,
             fechaFinMembresia: resultado.contrato.fecha_fin,
-            direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
-            telefonoPrevimed: '310 6236219'
+            direccionMediHome: 'Cra 9 # 9n-19, Popayán, Colombia',
+            telefonoMediHome: '310 6236219'
           }))
         })
       })

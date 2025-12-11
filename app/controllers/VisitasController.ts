@@ -49,7 +49,7 @@ export default class VisitasController {
         // Email para el paciente
         await mail.send((message) => {
           message
-            .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+            .from(process.env.MAIL_FROM_ADDRESS || 'proyectomedihome@gmail.com', 'MEDIHOME S.A.S')
             .to(emailLimpioPaciente!)
             .subject(`Confirmación de visita médica - ${fechaFormateada}`)
             .html(emailVisitaPaciente({
@@ -59,18 +59,18 @@ export default class VisitasController {
               fechaVisita: fechaFormateada,
               horaVisita: horaFormateada,
               descripcion: descripcion,
-              nombreClinica: 'PREVIMED S.A.S',
-              direccionPrevimed: 'Cra 9 # 9n-19, Popayán, Colombia',
+              nombreClinica: 'MEDIHOME S.A.S',
+              direccionMediHome: 'Cra 9 # 9n-19, Popayán, Colombia',
               direccionVisita:direccion,
               barrio: barrio?.nombre_barrio!,
-              telefonoPrevimed: '310 6236219'
+              telefonoMediHome: '310 6236219'
             }))
         })
 
         // Email para el médico
         await mail.send((message) => {
           message
-            .from(process.env.MAIL_FROM_ADDRESS || 'proyectoprevimed@gmail.com', 'PREVIMED S.A.S')
+            .from(process.env.MAIL_FROM_ADDRESS || 'proyectomedihome@gmail.com', 'MEDIHOME S.A.S')
             .to(emailLimipioMedico!)
             .subject(`Nueva visita - ${paciente?.usuario?.nombre}`)
             .html(emailVisitaMedico({

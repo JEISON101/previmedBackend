@@ -3,8 +3,8 @@ export const emailBienvenidaBeneficiario = (data:{
   numeroDocumento:string;
   nombreTitular: string;
   emailTitular: string;
-  direccionPrevimed: string;
-  telefonoPrevimed: string;
+  direccionMediHome: string;
+  telefonoMediHome: string;
 }) => 
 `
 <!doctype html>
@@ -12,7 +12,7 @@ export const emailBienvenidaBeneficiario = (data:{
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bienvenido a PREVEIMED S.A.S</title>
+  <title>Bienvenido a MEDIHOME S.A.S</title>
   <style>
     body { margin:0; padding:0; background-color:#f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
     .wrapper { width:100%; table-layout:fixed; background-color:#f3f4f6; padding:20px 0; }
@@ -39,12 +39,12 @@ export const emailBienvenidaBeneficiario = (data:{
     <table class="main" role="presentation" cellpadding="0" cellspacing="0">
       <tr>
         <td class="header">
-          <img class="logo" src="https://res.cloudinary.com/dudqqzt1k/image/upload/v1761360937/PREVIMED_Full_Color_zwphjh.png" alt="PREVIMED S.A.S" />
+          <img class="logo" src="https://res.cloudinary.com/dudqqzt1k/image/upload/v1765479080/logo_medihome_sin_fondo_zordag.png" alt="MEDIHOME S.A.S" />
         </td>
       </tr>
       <tr>
         <td class="content">
-          <h1>Bienvenido/a a PREVIMED S.A.S, ${data.nombreBeneficiario}</h1>
+          <h1>Bienvenido/a a MEDIHOME S.A.S, ${data.nombreBeneficiario}</h1>
           <p>Tu registro ha sido un exito. Aquí tienes la información básica y los documentos importantes que debes conocer.</p>
 
           <div class="card">
@@ -56,7 +56,7 @@ export const emailBienvenidaBeneficiario = (data:{
           <p>Descarga y revisa los documentos oficiales a continuación. Si tienes preguntas, responde a este correo o visita tu panel en la aplicación.</p>
 
           <div class="button-wrap">
-            <a class="btn btn-outline" href="https://res.cloudinary.com/dudqqzt1k/image/upload/v1761366273/Terminos_y_Condiciones_PREVIMED_mkxon0.pdf" target="_blank">Términos y condiciones</a>
+            <a class="btn btn-outline" href="https://res.cloudinary.com/dudqqzt1k/image/upload/v1765479606/Terminos_y_Condiciones_MEDIHOME_zvdvtm.pdf" target="_blank">Términos y condiciones</a>
           </div>
 
           <p>Aunque ya se realizó exitosamente tu registro dentro de la aplicación, aun no puedes hacer uso de nuestros servicios.</p>
@@ -71,8 +71,8 @@ export const emailBienvenidaBeneficiario = (data:{
       </tr>
       <tr>
         <td class="footer">
-          <p class="muted">Dirección: ${data.direccionPrevimed} · Cel: ${data.telefonoPrevimed}</p>
-          <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} PREVIMED S.A.S. Todos los derechos reservados.</p>
+          <p class="muted">Dirección: ${data.direccionMediHome} · Cel: ${data.telefonoMediHome}</p>
+          <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} MEDIHOME S.A.S. Todos los derechos reservados.</p>
         </td>
       </tr>
     </table>

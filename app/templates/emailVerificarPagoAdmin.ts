@@ -7,8 +7,8 @@ export const emailVerificarPagoAdmin = (data:{
   numeroMembresia:string
   fechaInicioMembresia: Date;
   fechaFinMembresia: Date;
-  direccionPrevimed: string;
-  telefonoPrevimed: string;
+  direccionMediHome: string;
+  telefonoMediHome: string;
   nombreAdmin: string;
   nombreTitular:string;
 }) => 
@@ -18,7 +18,7 @@ export const emailVerificarPagoAdmin = (data:{
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmación de pago</title>
+  <title>Nuevo pago registrado</title>
   <style>
     body { margin:0; padding:0; background-color:#f8fafc; font-family:'Segoe UI', Roboto, sans-serif; }
     .wrapper { width:100%; table-layout:fixed; background-color:#f8fafc; padding:20px 0; }
@@ -41,7 +41,7 @@ export const emailVerificarPagoAdmin = (data:{
     <table class="main" role="presentation" cellpadding="0" cellspacing="0">
       <tr>
         <td class="header">
-          <img class="logo" src="https://res.cloudinary.com/dudqqzt1k/image/upload/v1761360937/PREVIMED_Full_Color_zwphjh.png" alt="PREVIMED S.A.S" />
+          <img class="logo" src="https://res.cloudinary.com/dudqqzt1k/image/upload/v1765479080/logo_medihome_sin_fondo_zordag.png" alt="MEDIHOME S.A.S" />
         </td>
       </tr>
       <tr>
@@ -67,8 +67,8 @@ export const emailVerificarPagoAdmin = (data:{
       </tr>
       <tr>
         <td class="footer">
-          <p class="muted">Dirección: ${data.direccionPrevimed} · Cel: ${data.telefonoPrevimed}</p>
-          <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} PREVIMED S.A.S. Todos los derechos reservados.</p>
+          <p class="muted">Dirección: ${data.direccionMediHome} · Cel: ${data.telefonoMediHome}</p>
+          <p style="margin:0; color:#999; font-size:12px;">© ${new Date().getFullYear()} MEDIHOME S.A.S. Todos los derechos reservados.</p>
         </td>
       </tr>
     </table>

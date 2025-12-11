@@ -6,8 +6,8 @@ export const emailVisitaPaciente = (data: {
   horaVisita: string
   descripcion: string
   nombreClinica: string
-  direccionPrevimed: string
-  telefonoPrevimed: string
+  direccionMediHome: string
+  telefonoMediHome: string
   barrio: string
   direccionVisita: string
 }) => `
@@ -110,9 +110,9 @@ export const emailVisitaPaciente = (data: {
               <hr style="border:none; border-top:1px solid #e5e7eb; margin:30px 0;">
               <p style="margin:0; color:#555; font-size:15px; line-height:1.6; text-align:center;">
                 Si necesitas cancelar o reprogramar tu visita, contáctanos al 
-                <a href="tel:${data.telefonoPrevimed}" style="color:#11998e; text-decoration:none; font-weight:600;">${data.telefonoPrevimed}</a><br>
-                o visítanos en <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.direccionPrevimed)}" 
-                style="color:#11998e; text-decoration:none; font-weight:600;">${data.direccionPrevimed}</a>.
+                <a href="tel:${data.telefonoMediHome}" style="color:#11998e; text-decoration:none; font-weight:600;">${data.telefonoMediHome}</a><br>
+                o visítanos en <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.direccionMediHome)}" 
+                style="color:#11998e; text-decoration:none; font-weight:600;">${data.direccionMediHome}</a>.
               </p>
             </td>
           </tr>

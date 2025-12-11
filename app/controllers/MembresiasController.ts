@@ -116,13 +116,13 @@ public async buscarActiva({ params, response }: HttpContext) {
         const beneficiarios = pacientes.filter((p:any) => p.paciente_id && p.paciente_id != null);
         const titular = pacientes.find((p:any) => !p.pacienteId || p.pacienteId == null);
         const data = {
-          direccionPrevimed: '',
-          telefonoPrevimed: '',
+          direccionMediHome: '',
+          telefonoMediHome: '',
           beneficiarios: beneficiarios,
           titularNombre: `${titular?.usuario.nombre??''} ${titular?.usuario.segundo_nombre??''} ${titular?.usuario.apellido??''} ${titular?.usuario.segundo_apellido??''}`,
           titularEmail: titular?.usuario.email??'',
           titularDocumento: titular?.usuario.numero_documento,
-          membresia: '11241'
+          membresia: '5468798'
         }
         const pdf = await generarContratoPDF(data);
         response.header('Content-Type', 'application/pdf');
